@@ -9,7 +9,20 @@ const PostSchema = new Schema({
     description: String,
     images: [{ url: String, public_id: String }],
     location: String,
-    coordinates: Array,
+    geometry: { // its self is point has type and coor properties
+        type: {
+            type: String,
+            enum: ['Point'],
+            required: true
+        },
+        coordinates: {
+            type: [Number],
+            required: true
+        }
+    },
+    properties: { // description for point on map
+        description: String
+    },
     author: {
         type: Schema.Types.ObjectId,
         ref: 'User'
