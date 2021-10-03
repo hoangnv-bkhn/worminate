@@ -3,6 +3,7 @@ require('dotenv').config();
 const createError = require('http-errors');
 const express = require('express');
 const engine = require('ejs-mate');
+const favicon = require('serve-favicon');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
@@ -40,6 +41,7 @@ app.engine('ejs', engine);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
+app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')))
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -66,12 +68,12 @@ passport.deserializeUser(User.deserializeUser());
 
 // set local variables middleware
 app.use(function(req, res, next) {
-  req.user = {
-    // _id: '6123c48ffb8e8d54c4cfd187',
-    // _id: '6157fdbcb136ce83e4c91af9',
-    _id: '615829f3f507bc78f8833846',
-    username: 'ian3'
-  }
+  // req.user = {
+  //   // _id: '6123c48ffb8e8d54c4cfd187',
+  //   // _id: '6157fdbcb136ce83e4c91af9',
+  //   _id: '615829f3f507bc78f8833846',
+  //   username: 'ian3'
+  // }
   res.locals.currentUser = req.user;
   //set default page title
   res.locals.title = "Surf Shop";
