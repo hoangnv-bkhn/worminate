@@ -26,7 +26,10 @@ const app = express();
 // connect to the database
 mongoose.set('useCreateIndex', true);
 mongoose.set('useFindAndModify', false);
-const connect = mongoose.connect('mongodb://localhost:27017/surf-shop', {useNewUrlParser: true, useUnifiedTopology: true});
+const connect = mongoose.connect('mongodb://localhost:27017/surf-shop', {
+  useNewUrlParser: true, 
+  useUnifiedTopology: true
+});
 
 connect.then((db) => {
   console.log("Connected correctly to server");
