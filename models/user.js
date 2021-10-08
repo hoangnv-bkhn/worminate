@@ -8,7 +8,13 @@ const UserSchema = new Schema({
         unique: true,
         required: true
     },
-    image: String
+    image: {
+        path: {
+            type: String,
+            default: '/images/default-profile.jpg'
+        },
+        filename: String
+    }
 });
 
 UserSchema.plugin(passportLocalMongoose);
