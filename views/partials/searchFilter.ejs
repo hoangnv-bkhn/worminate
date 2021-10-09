@@ -4,15 +4,16 @@
         <label for="search">Search</label>
         <input type="text" placeholder="Search" name="search" id="seach" value="<%= query.search %>">
     </fieldset>
-
+    <br>
     <fieldset>
         <div>
+            <legend>Distance (Kilometers)</legend>
             <label for="location">Location</label>
             <input type="text" id="location" name="location" placeholder="Address or Zipcode"
                 value="<%= query.location %>">
-            <small><a href="#" id="use-my-location">Use my location</a></small>
+            <small><a href="#" id="find-me">Use my location</a></small><br>
+            <p id="status"></p>
         </div>
-        <legend>Distance (Kilometers)</legend>
         <div>
             <input type="radio" name="distance" id="distance25" value="25" <%=query.distance==='25' ? 'checked' : '' %>>
             <label for="distance25">25</label>
@@ -61,3 +62,5 @@
 	
 	<input type="submit">
 </form>
+
+<script src="/javascripts/use-my-location.js"></script>

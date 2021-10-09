@@ -89,21 +89,32 @@ const middleware = {
             let { search, price, avgRating, location, distance } = req.query;
             if (search) {
                 search = new RegExp(escapeRegExp(search), 'gi');
-                dbQueries.push({ $or: [ 
-                    {title: search},
-                    { description: search},
-                    { location: search }
-                ]});
+                dbQueries.push({
+                    $or: [
+                        { title: search },
+                        { description: search },
+                        { location: search }
+                    ]
+                });
             }
 
             if (location) {
-                const response = await geocodingClient
-                    .forwardGeocode({
-                        query: location,
-                        limit: 1
-                    })
-                    .send();
-                const { coordinates } = response.body.features[0].geometry;
+                let coordinates;
+                try {
+                    if (typeof JSON.parse(location) === 'number') {
+                        throw new Error;
+                    }
+                    location = JSON.parse(location);
+                    coordinates = location;
+                } catch (err) {
+                    const response = await geocodingClient
+                        .forwardGeocode({
+                            query: location,
+                            limit: 1
+                        })
+                        .send();
+                    coordinates = response.body.features[0].geometry.coordinates;
+                }
                 let maxDistance = distance || 25;
                 maxDistance *= 1000; // convert kilometers to meters
                 dbQueries.push({
@@ -121,15 +132,15 @@ const middleware = {
 
             if (price) {
                 if (price.min) {
-                    dbQueries.push({price: {$gte: price.min}});
+                    dbQueries.push({ price: { $gte: Number(price.min) } });
                 }
                 if (price.max) {
-                    dbQueries.push({price: {$lte: price.max}});
+                    dbQueries.push({ price: { $lte: Number(price.max) } });
                 }
             }
 
             if (avgRating) {
-                dbQueries.push({ avgRating: {$in: avgRating }});
+                dbQueries.push({ avgRating: { $in: avgRating } });
             }
 
             res.locals.dbQuery = dbQueries.length ? { $and: dbQueries } : {};
