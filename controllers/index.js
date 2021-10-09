@@ -13,7 +13,7 @@ module.exports = {
     //GET /
     async landingPage(req, res, next) {
         const posts = await Post.find({});
-        res.render('index', { posts, mapBoxToken, title: 'Surf Shop - Home' });
+        res.render('index', { posts, mapBoxToken, title: 'Worminate - Home' });
     },
     // GET /register
     getRegister(req, res, next) {
@@ -29,7 +29,7 @@ module.exports = {
             const user = await User.register(new User(req.body), req.body.password);
             req.login(user, function (err) {
                 if (err) return next(err);
-                req.session.success = `Welcome to Surf Shop, ${user.username}`;
+                req.session.success = `Welcome to Worminate, ${user.username}`;
                 res.redirect('/');
             });
         } catch (err) {

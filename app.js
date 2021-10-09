@@ -79,7 +79,7 @@ app.use(function(req, res, next) {
   // }
   res.locals.currentUser = req.user;
   //set default page title
-  res.locals.title = "Surf Shop";
+  res.locals.title = "Worminate";
   // set success flash message
   res.locals.success = req.session.success || '';
   delete req.session.success;

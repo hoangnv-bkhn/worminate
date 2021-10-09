@@ -64,4 +64,8 @@ PostSchema.methods.calculateAvgRating = function () {
 
 PostSchema.plugin(mongoosePaginate);
 
+// add 2dsphere index to geometry field
+// when users using filter has radius, which post has coor inside radius from input coor -> valid
+PostSchema.index({ geometry: '2dsphere'});
+
 module.exports = mongoose.model('Post', PostSchema);
