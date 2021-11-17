@@ -9,6 +9,7 @@
 
   <script>
     mapboxgl.accessToken = "<%= mapBoxToken %>";
+    var location_auto;
     var posts = { features: <%- JSON.stringify(posts) %> };
   </script>
   <script src="/javascripts/allPostsClusterMap.js"></script>

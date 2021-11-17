@@ -4,45 +4,49 @@ const multer = require('multer');
 const { storage } = require('../cloudinary');
 const upload = multer({ storage });
 const {
-    asyncErrorHandler, 
-    isLoggedIn, 
+    asyncErrorHandler,
+    isLoggedIn,
     isAuthor,
     searchAndFilterPosts
 } = require('../middleware');
 
 const {
-    postIndex, 
+    postIndex,
     postNew,
     postCreate,
     postShow,
     postEdit,
     postUpdate,
-    postDestroy
+    postDestroy,
+    favoritesProduct
 } = require('../controllers/posts');
 
 /* GET posts /posts. */
 router.get(
-    '/', 
-    asyncErrorHandler(searchAndFilterPosts), 
+    '/',
+    asyncErrorHandler(searchAndFilterPosts),
     asyncErrorHandler(postIndex)
 );
 
 /* GET posts new /posts/new. */
-router.get('/new', isLoggedIn, postNew);
+router.get('/new', isLoggedIn(), postNew);
 
 /* POST posts create /posts. */
-router.post('/', isLoggedIn, upload.array('images', 4), asyncErrorHandler(postCreate));
+router.post('/', isLoggedIn(), upload.array('images', 4), asyncErrorHandler(postCreate));
 
 /* GET posts show /posts/:id. */
 router.get('/:id', asyncErrorHandler(postShow));
 
 /* GET posts edit /posts/:id/edit. */
-router.get('/:id/edit', isLoggedIn, asyncErrorHandler(isAuthor), postEdit);
+router.get('/:id/edit', isLoggedIn(), asyncErrorHandler(isAuthor), postEdit);
 
 /* PUT posts update /posts/:id. */
-router.put('/:id', isLoggedIn, asyncErrorHandler(isAuthor), upload.array('images', 4), asyncErrorHandler(postUpdate));
+router.put('/:id', isLoggedIn(), asyncErrorHandler(isAuthor), upload.array('images', 4), asyncErrorHandler(postUpdate));
+
+/* POST posts add favoritesProduct /posts/:id. */
+router.post('/:id/favoritesProduct', isLoggedIn(), asyncErrorHandler(isAuthor), asyncErrorHandler(favoritesProduct));
 
 /* DELETE posts delete /posts/:id. */
-router.delete('/:id', isLoggedIn, asyncErrorHandler(isAuthor), asyncErrorHandler(postDestroy));
+router.delete('/:id', isLoggedIn(), asyncErrorHandler(isAuthor), asyncErrorHandler(postDestroy));
 
 module.exports = router;

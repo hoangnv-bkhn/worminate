@@ -12,6 +12,7 @@ async function seedPosts() {
         const postData = {
             title,
             description,
+            category: '618c090f56684a351c1eb6c4',
             location: `${cities[random1000].city}, ${cities[random1000].state}`,
             geometry: {
                 type: 'Point',
@@ -19,7 +20,7 @@ async function seedPosts() {
             },
             price: random1000,
             avgRating: random5,
-            author: '616019cbe2fb8f32f094074d'
+            author: '618c086056684a351c1eb67c'
         }
         let post = new Post(postData);
         post.properties.description = `<strong><a href="/posts/${post._id}">${title}</a></strong><p>${post.location}</p><p>${description.substring(0, 20)}...</p>`;

@@ -30,10 +30,19 @@ const PostSchema = new Schema({
     reviews: [
         {
             type: Schema.Types.ObjectId,
+            required: true,
             ref: 'Review'
         }
     ],
+    category: {
+        type: Schema.Types.ObjectId,
+        ref: 'Categories'
+    },
     avgRating: {
+        type: Number,
+        default: 0
+    },
+    productScore: {
         type: Number,
         default: 0
     }
@@ -66,6 +75,6 @@ PostSchema.plugin(mongoosePaginate);
 
 // add 2dsphere index to geometry field
 // when users using filter has radius, which post has coor inside radius from input coor -> valid
-PostSchema.index({ geometry: '2dsphere'});
+PostSchema.index({ geometry: '2dsphere' });
 
 module.exports = mongoose.model('Post', PostSchema);

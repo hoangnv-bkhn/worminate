@@ -1,5 +1,3 @@
-require('dotenv').config();
-
 const createError = require('http-errors');
 const express = require('express');
 const engine = require('ejs-mate');
@@ -8,34 +6,50 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const passport = require('passport')
+const compression = require('compression');
 
 const User = require('./models/user');
 const session = require('express-session')
 const mongoose = require('mongoose');
 const methodOverride = require('method-override');
+const authenticate = require('./middleware/authenticate');
 // const seedPosts = require('./seeds');
 // seedPosts();
 
 // require routes
 const indexRouter = require('./routes/index');
+const adminRoutes = require('./routes/admin');
 const postsRouter = require('./routes/posts');
 const reviewsRouter = require('./routes/reviews');
 
 const app = express();
 
-// connect to the database
-mongoose.set('useCreateIndex', true);
-mongoose.set('useFindAndModify', false);
-const connect = mongoose.connect('mongodb://localhost:27017/worminate', {
-  useNewUrlParser: true, 
-  useUnifiedTopology: true
+app.all('*', (req, res, next) => {
+  if (req.secure) {
+    return next();
+  }
+  else {
+    res.redirect(307, 'https://' + req.hostname + ':' + app.get('securePort') + req.url);
+  }
 });
 
-connect.then((db) => {
-  console.log("Connected correctly to server");
-}, (err) => {
-  console.log(err);
-});
+app.use(compression());
+
+// Configure Passport and Sessions
+
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: true }
+}))
+
+//Set up mongoose connection
+const mongoDB = process.env.MONGODB_URI;
+mongoose.connect(mongoDB, { useCreateIndex: true, useFindAndModify: false, useNewUrlParser: true , useUnifiedTopology: true, autoIndex: true });
+const db = mongoose.connection;
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+db.once('open', function(){ console.log('MongoDB connection open'); });
 
 // use ejs-locals for all ejs templates:
 app.engine('ejs', engine);
@@ -52,31 +66,11 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(methodOverride('_method'));
 
-// Configure Passport and Sessions
-
-app.use(session({
-  secret: 'hang ten dude!',
-  resave: false,
-  saveUninitialized: true
-}))
-
 app.use(passport.initialize());
 app.use(passport.session());
 
-// CHANGE: USE "createStrategy" INSTEAD OF "authenticate"
-passport.use(User.createStrategy());
-
-passport.serializeUser(User.serializeUser());
-passport.deserializeUser(User.deserializeUser());
-
-// set local variables middleware
-app.use(function(req, res, next) {
-  // req.user = {
-  //   // _id: '6123c48ffb8e8d54c4cfd187',
-  //   // _id: '6157fdbcb136ce83e4c91af9',
-  //   _id: '615829f3f507bc78f8833846',
-  //   username: 'ian3'
-  // }
+// set local constiables middleware
+app.use(function (req, res, next) {
   res.locals.currentUser = req.user;
   //set default page title
   res.locals.title = "Worminate";
@@ -92,16 +86,17 @@ app.use(function(req, res, next) {
 
 // Mount routes
 app.use('/', indexRouter);
+app.use('/admin', adminRoutes);
 app.use('/posts', postsRouter);
 app.use('/posts/:id/reviews', reviewsRouter);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   // set locals, only providing error in development
   // res.locals.message = err.message;
   // res.locals.error = req.app.get('env') === 'development' ? err : {};

@@ -1,46 +1,73 @@
 <% layout('layouts/boilerplate') -%>
 
-<h1><img src="<%= currentUser.image.path %>" alt="<%= currentUser.username %>'s profile image" class="profile-image"> <%= currentUser.username %>'s Profile</h1>
+    <h1><img src="<%= currentUser.image.path %>" alt="<%= currentUser.fullName %>'s profile image"
+            class="profile-image">
+        <%= currentUser.fullName %>'s Profile
+    </h1>
 
-<p>Recent Post:</p>
+    <p>Recent Post:</p>
 
-<% posts.forEach(function(post) { %> 
-    <div>
-        <a href="/posts/<%= post.id %>"><%= post.title %></a>
-    </div>
-<% }); %> 
+    <% posts.forEach(function(post) { %>
+        <div>
+            <a href="/posts/<%= post.id %>">
+                <%= post.title %>
+            </a>
+        </div>
+        <% }); %>
 
-<p>Update Info:</p>
+            <p>Update Info:</p>
 
-<form action="/profile?_method=PUT" method="POST" enctype="multipart/form-data">
-    <div>
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" placeholder="Username" value="<%= currentUser.username %>" autofocus required />
-    </div>
-    <div>
-        <label for="current-password">Current Password (required to update profile):</label>
-        <input type="password" id="current-password" name="currentPassword" placeholder="Current password" required>
-    </div>
-    <div>
-        <label for="new-password">New Password:</label>
-        <input type="password" id="new-password" name="newPassword" placeholder="New password" >
-    </div>
-    <div>
-        <label for="password-confirmation">Password Confirmation:</label>
-        <input type="password" id="password-confirmation" name="passwordConfirmation" placeholder="Password confirmation">
-    </div>
-    <div id="validation-message"></div>
-    <div>
-        <label for="email">Email:</label>
-        <input type="text" id="email" name="email" placeholder="Email" value="<%= currentUser.email %>" required>
-    </div>
-    <div>
-        <label for="image">Image:</label>
-        <small>(this deletes existing image)</small>
-        <input type="file" id="image" name="image">
-    </div>
+            <form action="/profile?_method=PUT" method="POST" enctype="multipart/form-data">
+                <div>
+                    <label for="fullName">Full Name:</label>
+                    <input type="text" id="fullName" name="fullName" placeholder="fullName"
+                        value="<%= currentUser.fullName %>" autofocus required />
+                </div>
+                <div>
+                    <label for="current-password">Current Password (required to update profile):</label>
+                    <input type="password" id="current-password" name="currentPassword" placeholder="Current password"
+                        required>
+                </div>
+                <div>
+                    <label for="new-password">New Password:</label>
+                    <input type="password" id="new-password" name="newPassword" placeholder="New password">
+                </div>
+                <div>
+                    <label for="password-confirmation">Password Confirmation:</label>
+                    <input type="password" id="password-confirmation" name="passwordConfirmation"
+                        placeholder="Password confirmation">
+                </div>
+                <div id="validation-message"></div>
+                <div>
+                    <label for="email">Email:</label>
+                    <input type="text" id="email" name="email" placeholder="Email" value="<%= currentUser.email %>"
+                        disabled>
+                </div>
+                <div>
+                    <label for="image">Image:</label>
+                    <small>(this deletes existing image)</small>
+                    <input type="file" id="image" name="image">
+                </div>
+                <div>
+                    <% if (social==3) { %>
+                        <a href="/auth/facebook">Liên kết Facebook</a>
+                        <a href="/auth/google">Liên kết Google</a>
+                    <% } %>
+                    <% if (social==1) { %>
+                        <a href="#">Đã liên kết Facebook</a>
+                        <a href="/auth/google">Liên kết Google</a>
+                    <% } %>
+                    <% if (social==2) { %>
+                        <a href="/auth/facebook">Liên kết Facebook</a>
+                        <a href="#">Đã liên kết Google</a>
+                    <% } %>
+                    <% if (social==0) { %>
+                        <a href="#">Đã liên kết Facebook</a>
+                        <a href="#">Đã liên kết Google</a>
+                    <% } %>
+                </div>
 
-    <input type="submit" id="update-profile">
-</form>
+                <input type="submit" id="update-profile">
+            </form>
 
-<script src="/javascripts/profile.js"></script>
+            <script src="/javascripts/profile.js"></script>
