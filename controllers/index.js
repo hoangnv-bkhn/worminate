@@ -32,8 +32,6 @@ module.exports = {
                 var socialnetId = JSON.parse(req.body.socialnetId);
                 delete req.body.socialnetId;
                 req.body.socialnetId = socialnetId;
-            } else {
-                req.body.socialnetId = null;
             }
             const user = await User.register(new User(req.body), req.body.password);
             req.login(user, function (err) {
@@ -90,13 +88,10 @@ module.exports = {
                     await user.save();
                 }
             }
-            req.login(user, function (err) {
-                if (err) return next(err);
-                req.session.success = `Welcome back, ${user.fullName}!`;
-                const redirectUrl = req.session.redirectTo || '/';
-                delete req.session.redirectTo;
-                res.redirect(redirectUrl);
-            })
+            req.session.success = `Welcome back, ${user.fullName}!`;
+            const redirectUrl = req.session.redirectTo || '/';
+            delete req.session.redirectTo;
+            res.redirect(redirectUrl);
         }
         else {
             req.logout();
@@ -116,13 +111,7 @@ module.exports = {
             passport.authenticate('facebook', { failureRedirect: '/login' }, async (err, user, info) => {
                 var socialnetId = user.socialnetId;
                 userLoggedIn.socialnetId.facebookId = socialnetId.facebookId;
-                try {
-                    await userLoggedIn.save();
-                } catch (err) {
-                    console.log(err);
-                    req.session.success = 'Error';
-                    res.redirect(redirectUrl);
-                }
+                await userLoggedIn.save();
             })(req, res, next);
             req.session.success = 'Success';
             const redirectUrl = req.session.redirectTo || '/';
@@ -144,13 +133,10 @@ module.exports = {
                     await user.save();
                 }
             }
-            req.login(user, function (err) {
-                if (err) return next(err);
-                req.session.success = `Welcome back, ${user.fullName}!`;
-                const redirectUrl = req.session.redirectTo || '/';
-                delete req.session.redirectTo;
-                res.redirect(redirectUrl);
-            })
+            req.session.success = `Welcome back, ${user.fullName}!`;
+            const redirectUrl = req.session.redirectTo || '/';
+            delete req.session.redirectTo;
+            res.redirect(redirectUrl);
         }
         else {
             req.logout();
@@ -170,11 +156,7 @@ module.exports = {
             passport.authenticate('google', { failureRedirect: '/login' }, async (err, user, info) => {
                 var socialnetId = user.socialnetId;
                 userLoggedIn.socialnetId.googleId = socialnetId.googleId;
-                try {
-                    await userLoggedIn.save();
-                } catch (err) {
-                    console.log(err);
-                }
+                await userLoggedIn.save();
             })(req, res, next);
             req.session.success = 'Success';
             const redirectUrl = req.session.redirectTo || '/';

@@ -16,11 +16,13 @@ const UserSchema = new Schema({
     socialnetId: {
         facebookId: {
             type: String,
-            unique: true
+            unique: true,
+            sparse: true
         },
         googleId: {
             type: String,
-            unique: true
+            unique: true,
+            sparse: true
         }
     },
     image: {

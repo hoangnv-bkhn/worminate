@@ -8,11 +8,9 @@ const logger = require('morgan');
 const passport = require('passport')
 const compression = require('compression');
 
-const User = require('./models/user');
 const session = require('express-session')
 const mongoose = require('mongoose');
 const methodOverride = require('method-override');
-const authenticate = require('./middleware/authenticate');
 // const seedPosts = require('./seeds');
 // seedPosts();
 
@@ -66,6 +64,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(methodOverride('_method'));
 
+const authenticate = require('./middleware/authenticate');
 app.use(passport.initialize());
 app.use(passport.session());
 
