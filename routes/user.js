@@ -30,10 +30,10 @@ router.get('/logout/:token', asyncErrorHandler(getLogout));
 
 //GET /user/profile
 // res.json({ data: posts, message, success })
-router.get('/profile', asyncErrorHandler(isValidPassword), upload.single('image'), asyncErrorHandler(updateProfile));
+router.get('/profile');
 
 //PUT /user/profile | body(fullName: String, image: file, password: String, newPassword: String)
 // res.json({ data: user, message, success })
-router.put('/profile');
+router.put('/profile', upload.single('image'), asyncErrorHandler(isValidPassword), asyncErrorHandler(updateProfile));
 
 module.exports = router;

@@ -30,13 +30,10 @@ module.exports = {
         await cloudinary.uploader.destroy(filename);
     },
     isValidPassword: async (req, res, next) => {
-        const { password, newPassword } = req.body;
+        const { password } = req.body;
         const { user, error } = await User.authenticate()(req.user.email, password);
         if (!user && error) return next(error);
-        else {
-            if (newPassword) await user.setPassword(newPassword);
-            next();
-        }
+        else next();
     }
     // searchAndFilterPosts: async (req, res, next) => {
     //     const queryKeys = Object.keys(req.query);

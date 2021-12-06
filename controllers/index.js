@@ -90,7 +90,7 @@ module.exports = {
     },
     //PUT /profile
     updateProfile: async (req, res, next) => {
-        const { fullName } = req.body;
+        const { fullName, newPassword } = req.body;
         const user = req.user;
         if (fullName) {
             user.fullName = fullName;
@@ -102,7 +102,8 @@ module.exports = {
             const { path, filename } = req.file;
             user.image = { path, filename };
         }
-        if (fullName || req.file) await user.save();
+        if (newPassword) await user.setPassword(newPassword);
+        if (fullName || req.file || newPassword) await user.save();
         res.json({ data: user, message: 'Update profile successfully.', success: true });
     },
     //GET /active-account
