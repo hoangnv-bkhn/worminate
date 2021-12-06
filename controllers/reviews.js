@@ -33,7 +33,7 @@ module.exports = {
     // Reviews Destroy
     async reviewDestroy(req, res, next) {
         await Post.findByIdAndUpdate(req.params.id, {
-            $pull: {reviews: req.params.review_id}
+            $pull: { reviews: req.params.review_id }
         });
         await Review.findByIdAndRemove(req.params.review_id);
         req.session.success = "Review deleted successfully!";

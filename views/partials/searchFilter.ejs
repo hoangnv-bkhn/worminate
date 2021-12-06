@@ -7,6 +7,19 @@
     <br>
     <fieldset>
         <div>
+            <legend>Category</legend>
+            <label for="category">Choose</label>
+            <select name="category" id="category">
+                <% for(var i=0; i < categories.length; i++) { %>
+                    <option value='<%= categories[i] %>'>
+                        <%= categories[i] %>
+                    </option>
+                    <% } %>
+            </select>
+        </div>
+    </fieldset>
+    <fieldset>
+        <div>
             <legend>Distance (Kilometers)</legend>
             <label for="location">Location</label>
             <input type="text" id="location" name="location" placeholder="Address or Zipcode"
@@ -35,32 +48,40 @@
     <fieldset>
         <legend>Price</legend>
         <label for="min">Min</label>
-		<input type="number" id="min" name="price[min]" min="0" max="1000000000" step="1" placeholder="Min" value="<%= query.price ? query.price.min : '' %>">
+        <input type="number" id="min" name="price[min]" min="0" max="1000000000" step="1" placeholder="Min"
+            value="<%= query.price ? query.price.min : '' %>">
 
-		<label for="max">Max</label>
-		<input type="number" id="max" name="price[max]" min="0" max="1000000000" step="1" placeholder="Max" value="<%= query.price ? query.price.max : '' %>">
+        <label for="max">Max</label>
+        <input type="number" id="max" name="price[max]" min="0" max="1000000000" step="1" placeholder="Max"
+            value="<%= query.price ? query.price.max : '' %>">
     </fieldset>
 
     <fieldset>
-		<legend>Rating</legend>
-		<input type="checkbox" id="zero-stars" name="avgRating[]" value="0" <%= query.avgRating && query.avgRating.includes('0') ? 'checked' : '' %>>
-		<label for="zero-stars">0 stars</label><br>
-		<input type="checkbox" id="one-star" name="avgRating[]" value="1" <%= query.avgRating && query.avgRating.includes('1') ? 'checked' : '' %>>
-		<label for="one-star">1 star</label><br>
-		<input type="checkbox" id="two-stars" name="avgRating[]" value="2" <%= query.avgRating && query.avgRating.includes('2') ? 'checked' : '' %>>
-		<label for="two-stars">2 stars</label><br>
-		<input type="checkbox" id="three-stars" name="avgRating[]" value="3" <%= query.avgRating && query.avgRating.includes('3') ? 'checked' : '' %>>
-		<label for="three-stars">3 stars</label><br>
-		<input type="checkbox" id="four-stars" name="avgRating[]" value="4" <%= query.avgRating && query.avgRating.includes('4') ? 'checked' : '' %>>
-		<label for="four-stars">4 stars</label><br>
-		<input type="checkbox" id="five-stars" name="avgRating[]" value="5" <%= query.avgRating && query.avgRating.includes('5') ? 'checked' : '' %>>
-		<label for="five-stars">5 stars</label>
-	</fieldset>
-	<div>
-		<a href="/posts">Reset form</a>
-	</div>
-	
-	<input type="submit">
+        <legend>Rating</legend>
+        <input type="checkbox" id="zero-stars" name="avgRating[]" value="0" <%=query.avgRating &&
+            query.avgRating.includes('0') ? 'checked' : '' %>>
+        <label for="zero-stars">0 stars</label><br>
+        <input type="checkbox" id="one-star" name="avgRating[]" value="1" <%=query.avgRating &&
+            query.avgRating.includes('1') ? 'checked' : '' %>>
+        <label for="one-star">1 star</label><br>
+        <input type="checkbox" id="two-stars" name="avgRating[]" value="2" <%=query.avgRating &&
+            query.avgRating.includes('2') ? 'checked' : '' %>>
+        <label for="two-stars">2 stars</label><br>
+        <input type="checkbox" id="three-stars" name="avgRating[]" value="3" <%=query.avgRating &&
+            query.avgRating.includes('3') ? 'checked' : '' %>>
+        <label for="three-stars">3 stars</label><br>
+        <input type="checkbox" id="four-stars" name="avgRating[]" value="4" <%=query.avgRating &&
+            query.avgRating.includes('4') ? 'checked' : '' %>>
+        <label for="four-stars">4 stars</label><br>
+        <input type="checkbox" id="five-stars" name="avgRating[]" value="5" <%=query.avgRating &&
+            query.avgRating.includes('5') ? 'checked' : '' %>>
+        <label for="five-stars">5 stars</label>
+    </fieldset>
+    <div>
+        <a href="/posts">Reset form</a>
+    </div>
+
+    <input type="submit">
 </form>
 
 <script src="/javascripts/use-my-location.js"></script>

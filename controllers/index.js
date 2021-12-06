@@ -1,5 +1,6 @@
 const User = require('../models/user');
 const Post = require('../models/post');
+const Categories = require('../models/categories');
 const passport = require('passport');
 const mapBoxToken = process.env.MAPBOX_TOKEN;
 const util = require('util');
@@ -17,7 +18,8 @@ module.exports = {
     },
     // GET /register
     getRegister(req, res, next) {
-        res.render('register', { title: 'Register', username: '', email: '' });
+        var socialnetId;
+        res.render('register', { title: 'Register', fullName: '', email: '', socialnetId });
     },
     // POST /register
     async postRegister(req, res, next) {
@@ -26,20 +28,26 @@ module.exports = {
                 const { path, filename } = req.file;
                 req.body.image = { path, filename };
             }
+            if (req.body.socialnetId) {
+                var socialnetId = JSON.parse(req.body.socialnetId);
+                delete req.body.socialnetId;
+                req.body.socialnetId = socialnetId;
+            }
             const user = await User.register(new User(req.body), req.body.password);
             req.login(user, function (err) {
                 if (err) return next(err);
-                req.session.success = `Welcome to Worminate, ${user.username}`;
+                req.session.success = `Welcome to Worminate, ${user.fullName}`;
                 res.redirect('/');
             });
         } catch (err) {
             deleteProfileImage(req);
-            const { username, email } = req.body;
+            const { fullName, email } = req.body;
+            var socialnetId;
             let error = err.message;
             if (error.includes('duplicate') && error.includes('index: email_1 dup key')) {
                 error = 'A user with the given email already registered';
             }
-            res.render('register', { title: 'Register', username, email, error });
+            res.render('register', { title: 'Register', fullName, email, error, socialnetId });
         }
     },
     // GET /login
@@ -55,18 +63,106 @@ module.exports = {
     // POST /login
     async postLogin(req, res, next) {
         // passport.authenticate('local', { failureRedirect: '/login', successRedirect: '/' })(req, res, next);
-        const { username, password } = req.body;
-        const { user, error } = await User.authenticate()(username, password);
+        const { email, password } = req.body;
+        const { user, error } = await User.authenticate()(email, password);
         if (!user && error) return next(error);
         req.login(user, function (err) {
             if (err) return next(err);
-            req.session.success = `Welcome back, ${user.username}!`;
+            req.session.success = `Welcome back, ${user.fullName}!`;
             const redirectUrl = req.session.redirectTo || '/';
             delete req.session.redirectTo;
             res.redirect(redirectUrl);
-
         })
-
+    },
+    //GET /login with facebook
+    async postLoginFacebook(req, res, next) {
+        var socialnetId = {
+            "facebookId": req.user.socialnetId.facebookId
+        };
+        const { fullName, email } = req.user;
+        const user = await User.findOne({ "socialnetId.facebookId": socialnetId.facebookId });
+        if (user) {
+            if (req.user.image.path) {
+                if (user.image.path == process.env.USER_IMAGE_PATHS) {
+                    user.image.path = req.user.image.path;
+                    await user.save();
+                }
+            }
+            req.session.success = `Welcome back, ${user.fullName}!`;
+            const redirectUrl = req.session.redirectTo || '/';
+            delete req.session.redirectTo;
+            res.redirect(redirectUrl);
+        }
+        else {
+            req.logout();
+            socialnetId = JSON.stringify(socialnetId);
+            res.render('register', { title: 'Register', fullName: fullName, email: email, socialnetId });
+        }
+    },
+    //GET /link with facebook
+    async getLinkWithFacebook(req, res, next) {
+        const userLoggedIn = await User.findOne({ email: req.user.email });
+        if (userLoggedIn.socialnetId.facebookId) {
+            req.session.success = 'Account linked facebook';
+            const redirectUrl = req.session.redirectTo || '/';
+            delete req.session.redirectTo;
+            res.redirect(redirectUrl);
+        } else {
+            passport.authenticate('facebook', { failureRedirect: '/login' }, async (err, user, info) => {
+                var socialnetId = user.socialnetId;
+                userLoggedIn.socialnetId.facebookId = socialnetId.facebookId;
+                await userLoggedIn.save();
+            })(req, res, next);
+            req.session.success = 'Success';
+            const redirectUrl = req.session.redirectTo || '/';
+            delete req.session.redirectTo;
+            res.redirect(redirectUrl);
+        }
+    },
+    //GET /login with google
+    async postLoginGoogle(req, res, next) {
+        var socialnetId = {
+            "googleId": req.user.socialnetId.googleId
+        };
+        const { fullName, email } = req.user;
+        const user = await User.findOne({ "socialnetId.googleId": socialnetId.googleId });
+        if (user) {
+            if (req.user.image.path) {
+                if (user.image.path == process.env.USER_IMAGE_PATHS) {
+                    user.image.path = req.user.image.path;
+                    await user.save();
+                }
+            }
+            req.session.success = `Welcome back, ${user.fullName}!`;
+            const redirectUrl = req.session.redirectTo || '/';
+            delete req.session.redirectTo;
+            res.redirect(redirectUrl);
+        }
+        else {
+            req.logout();
+            socialnetId = JSON.stringify(socialnetId);
+            res.render('register', { title: 'Register', fullName: fullName, email: email, socialnetId });
+        }
+    },
+    //GET /link with google
+    async getLinkWithGoogle(req, res, next) {
+        const userLoggedIn = await User.findOne({ email: req.user.email });
+        if (userLoggedIn.socialnetId.googleId) {
+            req.session.success = 'Account linked google';
+            const redirectUrl = req.session.redirectTo || '/';
+            delete req.session.redirectTo;
+            res.redirect(redirectUrl);
+        } else {
+            passport.authenticate('google', { failureRedirect: '/login' }, async (err, user, info) => {
+                var socialnetId = user.socialnetId;
+                userLoggedIn.socialnetId.googleId = socialnetId.googleId;
+                await userLoggedIn.save();
+            })(req, res, next);
+            req.session.success = 'Success';
+            const redirectUrl = req.session.redirectTo || '/';
+            delete req.session.redirectTo;
+            res.redirect(redirectUrl);
+        }
     },
     // GET /logout
     getLogout(req, res, next) {
@@ -75,19 +171,20 @@ module.exports = {
     },
     async getProfile(req, res, next) {
         const posts = await Post.find().where('author').equals(req.user._id).limit(10).exec();
-        res.render('profile', { posts });
+        var social;
+        if (req.user.socialnetId.facebookId && req.user.socialnetId.googleId) social = 0;
+        else if (req.user.socialnetId.facebookId) social = 1;
+        else if (req.user.socialnetId.googleId) social = 2;
+        else social = 3;
+        res.render('profile', { posts, social });
     },
     async updateProfile(req, res, next) {
         const {
-            username,
-            email
+            fullName
         } = req.body;
         const { user } = res.locals;
-        if (username) {
-            user.username = username;
-        }
-        if (email) {
-            user.email = email;
+        if (fullName) {
+            user.fullName = fullName;
         }
         if (req.file) {
             if (user.image.filename) {
@@ -123,7 +220,7 @@ module.exports = {
             subject: 'Worminate - Forgot Password / Reset',
             text: `You are receiving this because you (or someone else) have requested the reset of the password for your account.
 			Please click on the following link, or copy and paste it into your browser to complete the process:
-			http://${req.headers.host}/reset/${token}
+			https://${req.headers.host}/reset/${token}
 			If you did not request this, please ignore this email and your password will remain unchanged.`.replace(/			/g, '')
         };
 
@@ -177,7 +274,7 @@ module.exports = {
         };
         await sgMail.send(msg);
 
-        req.session.success ='Password successfully updated.';
+        req.session.success = 'Password successfully updated.';
         res.redirect('/');
     }
 }

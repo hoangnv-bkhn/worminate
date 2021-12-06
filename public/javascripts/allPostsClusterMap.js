@@ -6,6 +6,11 @@ var map = new mapboxgl.Map({
     zoom: 3.3
 });
 
+if(location_auto) {
+    map.setCenter([location_auto[0],location_auto[1]]);
+    map.setZoom(7.5);
+}
+
 map.addControl(new MapboxGeocoder({ // add search capability in map - need for mapBoxToken
     accessToken: mapboxgl.accessToken
 }));
