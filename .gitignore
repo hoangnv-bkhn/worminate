@@ -1,3 +1,5 @@
 node_modules
-bin
+bin/ca_bundle.crt
+bin/certificate.crt
+bin/private.key
 .env
