@@ -1,72 +1,58 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const passportLocalMongoose = require('passport-local-mongoose');
-const mongoosePaginate = require('mongoose-paginate');
 
-const UserSchema = new Schema({
-    fullName: {
-        type: String,
-        required: true
-    },
-    email: {
-        type: String,
-        unique: true,
-        required: true
-    },
-    socialnetId: {
-        facebookId: {
+const UserSchema = new Schema(
+    {
+        fullName: {
             type: String,
-            unique: true,
-            sparse: true
+            required: true,
+            minLength: 3,
+            maxLength: 50
         },
-        googleId: {
+        email: {
             type: String,
-            unique: true,
-            sparse: true
-        }
-    },
-    image: {
-        path: {
-            type: String,
-            default: '/images/default-profile.jpg'
+            required: true,
+            unique: true
         },
-        filename: String
-    },
-    admin: {
-        type: Boolean,
-        default: false
-    },
-    userScore: {
-        type: Number,
-        default: 0
-    },
-    productsScore: {
-        type: Number,
-        default: 0
-    },
-    salesHistory: {
-        type: Number,
-        default: 0
-    },
-    creditLevel: {
-        type: Number,
-        default: 0
-    },
-    favoritesProduct: [
-        {
-            type: Schema.Types.ObjectId,
-            ref: 'Post'
-        }
-    ],
-    ageAccount: {
-        type: Number,
-        default: Math.floor(Date.now() / 1000)
-    },
-    resetPasswordToken: String,
-    resetPasswordExpires: Date
+        admin: {
+            type: Boolean,
+            default: false
+        },
+        active: {
+            type: Boolean,
+            default: false
+        },
+        image: {
+            path: {
+                type: String,
+                default: 'images/default-profile.jpg'
+            },
+            filename: String
+        },
+        sessionToken: [
+            {
+                token: String
+            }
+        ],
+        accountToken: String,
+        accountTokenExpires: Date
+    }
+);
+
+// Virtual for author's full name
+// UserSchema
+//     .virtual('name')
+//     .get(function () {
+//         return this.family_name + ', ' + this.first_name;
+//     });
+
+UserSchema.plugin(passportLocalMongoose, {
+    usernameField: 'email', findByUsername: function (model, queryParameters) {
+        queryParameters.active = true;
+        return model.findOne(queryParameters);
+    }
 });
 
-UserSchema.plugin(mongoosePaginate);
-UserSchema.plugin(passportLocalMongoose, { usernameField: 'email' });
-
+//Export model
 module.exports = mongoose.model('User', UserSchema);

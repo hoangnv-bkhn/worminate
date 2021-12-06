@@ -1,280 +1,124 @@
-const User = require('../models/user');
-const Post = require('../models/post');
-const Categories = require('../models/categories');
-const passport = require('passport');
-const mapBoxToken = process.env.MAPBOX_TOKEN;
-const util = require('util');
-const { cloudinary } = require('../cloudinary');
-const { deleteProfileImage } = require('../middleware');
+const User = require('../models/User');
+const Post = require('../models/Post');
 const crypto = require('crypto');
 const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
+const {
+    deleteImageCloudinary
+} = require('../middlewares');
+
+const {
+    getToken,
+    decodeToken
+} = require('../middlewares/authenticate');
+
+activeToken = async (email, msg, fn) => {
+    /* If fn = true => active account
+    Else => forgot password */
+    const token = crypto.randomBytes(20).toString('hex');
+    const user = await User.findOne({ email });
+    if (user && ((fn && !user.active) || (!fn && user.active))) {
+        user.accountToken = token;
+        user.accountTokenExpires = Date.now() + 3600000;
+        await user.save();
+        await sgMail.send(msg);
+    }
+}
+
+activeAccount = (email, req) => {
+    const msg = {
+        to: email,
+        from: 'Worminate Admin <tokyo.example@gmail.com>',
+        subject: 'Worminate - Active Account',
+        text: `You are receiving this because you (or someone else) have requested to activate your account.
+        Please click on the following link, or copy and paste it into your browser to complete the process:
+        http://${req.headers.host}/active-account/${token}
+        If you did not request this, please ignore this email.`.replace(/			/g, '')
+    };
+    activeToken(email, msg, true);
+}
+
 module.exports = {
     //GET /
-    async landingPage(req, res, next) {
+    landingPage: async (req, res, next) => {
         const posts = await Post.find({});
-        res.render('index', { posts, mapBoxToken, title: 'Worminate - Home' });
+        res.json({ data: posts, message: 'Posts show successfully.', success: true });
     },
-    // GET /register
-    getRegister(req, res, next) {
-        var socialnetId;
-        res.render('register', { title: 'Register', fullName: '', email: '', socialnetId });
+    //GET /register
+    getRegister: (req, res, next) => {
+        res.json({ message: 'Ready to register', success: true });
     },
-    // POST /register
-    async postRegister(req, res, next) {
-        try {
-            if (req.file) {
-                const { path, filename } = req.file;
-                req.body.image = { path, filename };
-            }
-            if (req.body.socialnetId) {
-                var socialnetId = JSON.parse(req.body.socialnetId);
-                delete req.body.socialnetId;
-                req.body.socialnetId = socialnetId;
-            }
-            const user = await User.register(new User(req.body), req.body.password);
-            req.login(user, function (err) {
-                if (err) return next(err);
-                req.session.success = `Welcome to Worminate, ${user.fullName}`;
-                res.redirect('/');
-            });
-        } catch (err) {
-            deleteProfileImage(req);
-            const { fullName, email } = req.body;
-            var socialnetId;
-            let error = err.message;
-            if (error.includes('duplicate') && error.includes('index: email_1 dup key')) {
-                error = 'A user with the given email already registered';
-            }
-            res.render('register', { title: 'Register', fullName, email, error, socialnetId });
+    //POST /register
+    postRegister: async (req, res, next) => {
+        if (req.file) {
+            const { path, filename } = req.file;
+            req.body.image = { path, filename };
         }
+        const user = await User.register(new User(req.body), req.body.password);
+        activeAccount(user.email, req);
+        res.json({ message: 'Account created successfully.', success: true });
     },
-    // GET /login
-    getLogin(req, res, next) {
-        if (req.isAuthenticated()) {
-            return res.redirect('/');
-        }
-        if (req.query.returnTo) {
-            req.session.redirectTo = req.headers.referer;
-        }
-        res.render('login', { title: 'Login' });
+    //GET /login
+    getLogin: (req, res, next) => {
+        res.json({ message: 'Ready to login', success: true });
     },
-    // POST /login
-    async postLogin(req, res, next) {
-        // passport.authenticate('local', { failureRedirect: '/login', successRedirect: '/' })(req, res, next);
+    //POST /login
+    postLogin: async (req, res, next) => {
         const { email, password } = req.body;
         const { user, error } = await User.authenticate()(email, password);
         if (!user && error) return next(error);
-        req.login(user, function (err) {
-            if (err) return next(err);
-            req.session.success = `Welcome back, ${user.fullName}!`;
-            const redirectUrl = req.session.redirectTo || '/';
-            delete req.session.redirectTo;
-            res.redirect(redirectUrl);
-        })
+        const sessionToken = crypto.randomBytes(20).toString('hex');
+        user.sessionToken.push({ token: sessionToken });
+        await user.save();
+        const token = getToken({ _id: user._id, sessionToken: sessionToken });
+        res.json({ data: { token: token, user: user }, message: 'Account logged successfully.', success: true });
     },
-    //GET /login with facebook
-    async postLoginFacebook(req, res, next) {
-        var socialnetId = {
-            "facebookId": req.user.socialnetId.facebookId
-        };
-        const { fullName, email } = req.user;
-        const user = await User.findOne({ "socialnetId.facebookId": socialnetId.facebookId });
-        if (user) {
-            if (req.user.image.path) {
-                if (user.image.path == process.env.USER_IMAGE_PATHS) {
-                    user.image.path = req.user.image.path;
-                    await user.save();
-                }
-            }
-            req.session.success = `Welcome back, ${user.fullName}!`;
-            const redirectUrl = req.session.redirectTo || '/';
-            delete req.session.redirectTo;
-            res.redirect(redirectUrl);
-        }
-        else {
-            req.logout();
-            socialnetId = JSON.stringify(socialnetId);
-            res.render('register', { title: 'Register', fullName: fullName, email: email, socialnetId });
-        }
+    //GET /logout
+    getLogout: async (req, res, next) => {
+        const { token } = req.params;
+        const { sessionToken, _id } = decodeToken(token);
+        const user = await User.findOne({ _id });
+        user.sessionToken = user.sessionToken.filter(session => session.token != sessionToken);
+        await user.save();
+        res.json({ message: 'Logout successfully.', success: true });
     },
-    //GET /link with facebook
-    async getLinkWithFacebook(req, res, next) {
-        const userLoggedIn = await User.findOne({ email: req.user.email });
-        if (userLoggedIn.socialnetId.facebookId) {
-            req.session.success = 'Account linked facebook';
-            const redirectUrl = req.session.redirectTo || '/';
-            delete req.session.redirectTo;
-            res.redirect(redirectUrl);
-        } else {
-            passport.authenticate('facebook', { failureRedirect: '/login' }, async (err, user, info) => {
-                var socialnetId = user.socialnetId;
-                userLoggedIn.socialnetId.facebookId = socialnetId.facebookId;
-                await userLoggedIn.save();
-            })(req, res, next);
-            req.session.success = 'Success';
-            const redirectUrl = req.session.redirectTo || '/';
-            delete req.session.redirectTo;
-            res.redirect(redirectUrl);
-        }
-    },
-    //GET /login with google
-    async postLoginGoogle(req, res, next) {
-        var socialnetId = {
-            "googleId": req.user.socialnetId.googleId
-        };
-        const { fullName, email } = req.user;
-        const user = await User.findOne({ "socialnetId.googleId": socialnetId.googleId });
-        if (user) {
-            if (req.user.image.path) {
-                if (user.image.path == process.env.USER_IMAGE_PATHS) {
-                    user.image.path = req.user.image.path;
-                    await user.save();
-                }
-            }
-            req.session.success = `Welcome back, ${user.fullName}!`;
-            const redirectUrl = req.session.redirectTo || '/';
-            delete req.session.redirectTo;
-            res.redirect(redirectUrl);
-        }
-        else {
-            req.logout();
-            socialnetId = JSON.stringify(socialnetId);
-            res.render('register', { title: 'Register', fullName: fullName, email: email, socialnetId });
-        }
-    },
-    //GET /link with google
-    async getLinkWithGoogle(req, res, next) {
-        const userLoggedIn = await User.findOne({ email: req.user.email });
-        if (userLoggedIn.socialnetId.googleId) {
-            req.session.success = 'Account linked google';
-            const redirectUrl = req.session.redirectTo || '/';
-            delete req.session.redirectTo;
-            res.redirect(redirectUrl);
-        } else {
-            passport.authenticate('google', { failureRedirect: '/login' }, async (err, user, info) => {
-                var socialnetId = user.socialnetId;
-                userLoggedIn.socialnetId.googleId = socialnetId.googleId;
-                await userLoggedIn.save();
-            })(req, res, next);
-            req.session.success = 'Success';
-            const redirectUrl = req.session.redirectTo || '/';
-            delete req.session.redirectTo;
-            res.redirect(redirectUrl);
-        }
-    },
-    // GET /logout
-    getLogout(req, res, next) {
-        req.logout();
-        res.redirect('/');
-    },
-    async getProfile(req, res, next) {
+    //GET /profile
+    getProfile: async (req, res, next) => {
         const posts = await Post.find().where('author').equals(req.user._id).limit(10).exec();
-        var social;
-        if (req.user.socialnetId.facebookId && req.user.socialnetId.googleId) social = 0;
-        else if (req.user.socialnetId.facebookId) social = 1;
-        else if (req.user.socialnetId.googleId) social = 2;
-        else social = 3;
-        res.render('profile', { posts, social });
+        res.json({ user: req.user, data: posts, message: 'Profile shows successfully.', success: true });
     },
-    async updateProfile(req, res, next) {
-        const {
-            fullName
-        } = req.body;
-        const { user } = res.locals;
+    //PUT /profile
+    updateProfile: async (req, res, next) => {
+        const { fullName } = req.body;
+        const user = req.user;
         if (fullName) {
             user.fullName = fullName;
         }
         if (req.file) {
             if (user.image.filename) {
-                await cloudinary.uploader.destroy(user.image.filename);
+                deleteImageCloudinary(user.image.filename);
             }
             const { path, filename } = req.file;
             user.image = { path, filename };
         }
-        await user.save();
-        const login = util.promisify(req.login.bind(req));
-        await login(user);
-        req.session.success = "Profile successfully updated!";
-        res.redirect("/profile");
+        if (fullName || req.file) await user.save();
+        res.json({ data: user, message: 'Update profile successfully.', success: true });
     },
-    getForgotPw(req, res, next) {
-        res.render('users/forgot');
-    },
-    async putForgotPw(req, res, next) {
-        const token = await crypto.randomBytes(20).toString('hex');
-        const { email } = req.body;
-        const user = await User.findOne({ email });
-        if (!user) {
-            req.session.error = 'No account with that email address exists.'
-            return res.redirect('/forgot-password');
-        }
-        user.resetPasswordToken = token;
-        user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
-        await user.save();
-
-        const msg = {
-            to: email,
-            from: 'Worminate Admin <tokyo.example@gmail.com>',
-            subject: 'Worminate - Forgot Password / Reset',
-            text: `You are receiving this because you (or someone else) have requested the reset of the password for your account.
-			Please click on the following link, or copy and paste it into your browser to complete the process:
-			https://${req.headers.host}/reset/${token}
-			If you did not request this, please ignore this email and your password will remain unchanged.`.replace(/			/g, '')
-        };
-
-        await sgMail.send(msg);
-
-        req.session.success = `An e-mail has been sent to ${email} with further instructions.`;
-        res.redirect('forgot-password');
-    },
-    async getReset(req, res, next) {
+    //GET /active-account
+    getActiveAccount: async (req, res, next) => {
         const { token } = req.params;
         const user = await User.findOne({
-            resetPasswordToken: token,
-            resetPasswordExpires: { $gt: Date.now() }
+            accountToken: token,
+            accountTokenExpires: { $gt: Date.now() }
         });
         if (!user) {
-            req.session.error = 'Password reset token is invalid or has expired.!';
-            return res.redirect('/forgot-password');
+            return next(createError('Account activation error'));
         }
-        res.render('users/reset', { token });
-    },
-    async putReset(req, res, next) {
-        const { token } = req.params;
-        const user = await User.findOne({
-            resetPasswordToken: token,
-            resetPasswordExpires: { $gt: Date.now() }
-        });
-        if (!user) {
-            req.session.error = 'Password reset token is invalid or has expired.';
-            console.log(123456789);
-            return res.redirect(`/reset/${token}`);
-        }
-        if (req.body.password === req.body.confirm) {
-            await user.setPassword(req.body.password);
-            user.resetPasswordToken = null;
-            user.resetPasswordExpires = null;
-            await user.save();
-            const login = util.promisify(req.login.bind(req));
-            await login(user);
-        } else {
-            req.session.error = 'Password do not match.';
-            return res.redirect(`/reset/${token}`);
-        }
-
-        const msg = {
-            to: user.email,
-            from: 'Worminate Admin <tokyo.example@gmail.com>',
-            subject: 'Worminate - Password Changed',
-            text: `Hello,
-            This email is to confirm that the password for your account has just been changed.
-            If you did not make this change, please hit reply and notify us at once.`.replace(/            /g, '')
-        };
-        await sgMail.send(msg);
-
-        req.session.success = 'Password successfully updated.';
-        res.redirect('/');
+        user.accountToken = null;
+        user.accountTokenExpires = null;
+        user.active = true;
+        await user.save();
+        res.json({ detail: 'Account activated successfully.' });
     }
 }

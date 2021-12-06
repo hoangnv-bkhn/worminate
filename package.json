@@ -1,42 +1,36 @@
 {
-  "name": "surf-shop",
+  "name": "worminate",
   "version": "0.0.0",
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
     "devstart": "nodemon ./bin/www",
-    "serverstart": "SET DEBUG=surf-shop:* & npm run devstart"
+    "serverstart": "DEBUG=worminate:* npm run devstart"
   },
   "dependencies": {
-    "@mapbox/mapbox-sdk": "^0.13.1",
-    "@sendgrid/mail": "^7.4.7",
-    "cloudinary": "^1.26.3",
+    "@mapbox/mapbox-sdk": "^0.13.2",
+    "@sendgrid/mail": "^7.6.0",
+    "cloudinary": "^1.27.1",
     "compression": "^1.7.4",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "dotenv": "^10.0.0",
     "ejs": "~2.6.1",
-    "ejs-mate": "^3.0.0",
     "express": "~4.16.1",
-    "express-session": "^1.17.2",
-    "faker": "^5.5.3",
     "helmet": "^4.6.0",
     "http-errors": "~1.6.3",
+    "jsonwebtoken": "^8.5.1",
     "method-override": "^3.0.0",
-    "mongoose": "^5.13.7",
+    "mongoose": "^6.0.14",
     "mongoose-paginate": "^5.0.3",
     "morgan": "~1.9.1",
     "multer": "^1.4.3",
     "multer-storage-cloudinary": "^4.0.0",
-    "nodemon": "^2.0.14",
-    "passport": "^0.4.1",
-    "passport-facebook": "^3.0.0",
-    "passport-google-oauth": "^2.0.0",
-    "passport-local": "^1.0.0",
-    "passport-local-mongoose": "^6.1.0",
-    "serve-favicon": "^2.5.0"
+    "passport": "^0.5.0",
+    "passport-jwt": "^4.0.0",
+    "passport-local-mongoose": "^6.1.0"
   },
   "devDependencies": {
-    "locus": "^2.0.3"
+    "nodemon": "^2.0.15"
   }
 }

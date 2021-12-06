@@ -1,96 +1,47 @@
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
+
 const { storage } = require('../cloudinary');
-const upload = multer({ storage });
-const passport = require('passport');
+const multer = require('multer');
+const upload = multer({ storage: storage });
+
 const {
   landingPage,
-  getRegister,
   postRegister,
-  getLogin,
   postLogin,
-  postLoginFacebook,
-  getLinkWithFacebook,
-  postLoginGoogle,
-  getLinkWithGoogle,
-  getLogout,
-  getProfile,
-  updateProfile,
-  getForgotPw,
-  putForgotPw,
-  getReset,
-  putReset,
-} = require('../controllers')
-const {
-  asyncErrorHandler,
-  isLoggedIn,
-  isLoggedInSocial,
-  isAdmin,
-  isValidPassword,
-  changePassword
-} = require('../middleware')
+  getActiveAccount
+} = require('../controllers');
 
-/* GET home/landing page. */
+const {
+  asyncErrorHandler
+} = require('../middlewares');
+
+//GET /
+// res.json({ data: posts, message, success })
 router.get('/', asyncErrorHandler(landingPage));
 
-/* GET /register. */
-router.get('/register', isLoggedIn(true), getRegister);
+//POST /register | body(image: file, fullName: String, email: String, password: String)
+// res.json({ message, success })
+router.post('/register', upload.single('image'), asyncErrorHandler(postRegister));
 
-/* POST /register. */
-router.post('/register', isLoggedIn(true), upload.single('image'), asyncErrorHandler(postRegister));
+//POST /login | body(email: String, password: String)
+// res.json({ data: {user, token}, message, success })
+router.post('/login', asyncErrorHandler(postLogin));
 
-/* GET /login. */
-router.get('/login', isLoggedIn(true), getLogin);
+//GET /active-account/:token
+// res.json({ message, success })
+router.get('/active-account/:token', asyncErrorHandler(getActiveAccount));
 
-/* POST /login. */
-router.post('/login', isLoggedIn(true), asyncErrorHandler(postLogin), (req, res, next) => {
-  res.send('POST /login');
-});
+//POST /forgot-password | body(email: String)
+// res.json({ message, success })
+router.post('/forgot-password');
 
-/* GET /login Facebook. */
-router.get('/auth/facebook',
-  passport.authenticate('facebook', { scope: 'email' }));
+//GET /reset-password/:token
+// res.json({ data: token, message, success })
+router.get('/reset-password/:token');
 
-router.get('/auth/facebook/callback',
-  isLoggedInSocial(asyncErrorHandler(getLinkWithFacebook)),
-  passport.authenticate('facebook', { failureRedirect: '/login' }),
-  asyncErrorHandler(postLoginFacebook));
-
-/* GET /login Google. */
-router.get('/auth/google',
-  passport.authenticate('google', { scope: ['https://www.googleapis.com/auth/plus.login', 'email'] }));
-
-router.get('/auth/google/callback',
-  isLoggedInSocial(asyncErrorHandler(getLinkWithGoogle)),
-  passport.authenticate('google', { failureRedirect: '/login' }),
-  asyncErrorHandler(postLoginGoogle));
-
-/* GET /logout. */
-router.get('/logout', getLogout);
-
-/* GET /profile. */
-router.get('/profile', isLoggedIn(), asyncErrorHandler(getProfile));
-
-/* PUT /profile. */
-router.put('/profile',
-  isLoggedIn(),
-  upload.single('image'),
-  asyncErrorHandler(isValidPassword),
-  asyncErrorHandler(changePassword),
-  asyncErrorHandler(updateProfile)
-);
-
-/* GET /forgot-password. */
-router.get('/forgot-password', isLoggedIn(true), getForgotPw);
-
-/* PUT /forgot-password. */
-router.put('/forgot-password', isLoggedIn(true), asyncErrorHandler(putForgotPw));
-
-/* GET /reset/:token. */
-router.get('/reset/:token', isLoggedIn(true), asyncErrorHandler(getReset));
-
-/* PUT /reset/:token. */
-router.put('/reset/:token', isLoggedIn(true), asyncErrorHandler(putReset));
+//PUT /reset-password/:token | body(password: String)
+// res.json({ message, success })
+router.put('/reset-password/:token');
 
 module.exports = router;

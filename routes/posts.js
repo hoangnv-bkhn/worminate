@@ -1,52 +1,46 @@
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
+
 const { storage } = require('../cloudinary');
-const upload = multer({ storage });
-const {
-    asyncErrorHandler,
-    isLoggedIn,
-    isAuthor,
-    searchAndFilterPosts
-} = require('../middleware');
+const multer = require('multer');
+const upload = multer({ storage: storage });
 
 const {
-    postIndex,
-    postNew,
-    postCreate,
-    postShow,
-    postEdit,
-    postUpdate,
-    postDestroy,
-    favoritesProduct
+    postCreate
 } = require('../controllers/posts');
 
-/* GET posts /posts. */
-router.get(
-    '/',
-    asyncErrorHandler(searchAndFilterPosts),
-    asyncErrorHandler(postIndex)
-);
+const {
+    asyncErrorHandler
+} = require('../middlewares');
 
-/* GET posts new /posts/new. */
-router.get('/new', isLoggedIn(), postNew);
+const {
+    verifyUser,
+    errorHandler
+} = require('../middlewares/authenticate');
 
-/* POST posts create /posts. */
-router.post('/', isLoggedIn(), upload.array('images', 4), asyncErrorHandler(postCreate));
+/* POST, PUT, DELETE request */
+router.post('*', verifyUser, errorHandler);
+router.put('*', verifyUser, errorHandler);
+router.delete('*', verifyUser, errorHandler);
 
-/* GET posts show /posts/:id. */
-router.get('/:id', asyncErrorHandler(postShow));
+//GET /posts | params()
+// res.json({ data: posts, message, success})
+router.get('/');
 
-/* GET posts edit /posts/:id/edit. */
-router.get('/:id/edit', isLoggedIn(), asyncErrorHandler(isAuthor), postEdit);
+//POST /posts/new | body()
+// res.json({ message, success })
+router.post('/new', upload.array('images', 4), asyncErrorHandler(postCreate));
 
-/* PUT posts update /posts/:id. */
-router.put('/:id', isLoggedIn(), asyncErrorHandler(isAuthor), upload.array('images', 4), asyncErrorHandler(postUpdate));
+//GET /posts/:id
+// res.json({ data: post, message, success})
+router.get('/:id');
 
-/* POST posts add favoritesProduct /posts/:id. */
-router.post('/:id/favoritesProduct', isLoggedIn(), asyncErrorHandler(isAuthor), asyncErrorHandler(favoritesProduct));
+//PUT /posts/:id | body()
+// res.json({ message, success})
+router.put('/:id');
 
-/* DELETE posts delete /posts/:id. */
-router.delete('/:id', isLoggedIn(), asyncErrorHandler(isAuthor), asyncErrorHandler(postDestroy));
+//DELETE /posts/:id
+// res.json({ message, success })
+router.delete('/:id');
 
 module.exports = router;
