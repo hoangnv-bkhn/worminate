@@ -25,6 +25,9 @@ mongoose.connect(mongoDB, { useNewUrlParser: true , useUnifiedTopology: true});
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 db.once('open', function(){ console.log('MongoDB connection open'); });
+require('./models/User');
+require('./models/Post');
+require('./models/Review');
 
 // view engine setup
 // app.set('views', path.join(__dirname, 'views'));
@@ -53,16 +56,13 @@ app.use(function(err, req, res, next) {
   // set locals, only providing error in development
   // res.locals.message = err.message;
   // res.locals.error = req.app.get('env') === 'development' ? err : {};
-  if (!err) {
-    err.message = 'An unspecified error occurred.';
+  const error = {
+    payload: {},
+    statusCode: err.status
   }
 
   // render the error page
   res.status(err.status || 500);
-  const error = {
-    message: err.message,
-    success: false
-  };
   res.json(error);
 });
 

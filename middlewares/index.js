@@ -34,77 +34,71 @@ module.exports = {
         const { user, error } = await User.authenticate()(req.user.email, password);
         if (!user && error) return next(error);
         else next();
+    },
+    searchAndFilterPosts: async (req, res, next) => {
+        const queryKeys = Object.keys(req.query);
+        if (queryKeys.length) {
+            const dbQueries = [];
+            let { search, price, avgRating, location, distance } = req.query;
+            if (search) {
+                search = new RegExp(escapeRegExp(search), 'gi');
+                dbQueries.push({
+                    $or: [
+                        { title: search },
+                        { description: search },
+                        { location: search }
+                    ]
+                });
+            }
+
+            if (location) {
+                let coordinates;
+                try {
+                    if (typeof JSON.parse(location) === 'number') {
+                        throw new Error;
+                    }
+                    location = JSON.parse(location);
+                    coordinates = location;
+                } catch (err) {
+                    const response = await geocodingClient
+                        .forwardGeocode({
+                            query: location,
+                            limit: 1
+                        })
+                        .send();
+                    coordinates = response.body.features[0].geometry.coordinates;
+                }
+                let maxDistance = distance || 25;
+                maxDistance *= 1000; // convert kilometers to meters
+                dbQueries.push({
+                    geometry: {
+                        $near: {
+                            $geometry: {
+                                type: 'Point',
+                                coordinates
+                            },
+                            $maxDistance: maxDistance
+                        }
+                    }
+                });
+            }
+
+            if (price) {
+                if (price.min) {
+                    dbQueries.push({ price: { $gte: Number(price.min) } });
+                }
+                if (price.max) {
+                    dbQueries.push({ price: { $lte: Number(price.max) } });
+                }
+            }
+
+            if (avgRating) {
+                dbQueries.push({ avgRating: { $in: avgRating } });
+            }
+
+            res.locals.dbQuery = dbQueries.length ? { $and: dbQueries } : {};
+        }
+
+        next();
     }
-    // searchAndFilterPosts: async (req, res, next) => {
-    //     const queryKeys = Object.keys(req.query);
-    //     if (queryKeys.length) {
-    //         const dbQueries = [];
-    //         let { search, price, avgRating, location, distance } = req.query;
-    //         if (search) {
-    //             search = new RegExp(escapeRegExp(search), 'gi');
-    //             dbQueries.push({
-    //                 $or: [
-    //                     { title: search },
-    //                     { description: search },
-    //                     { location: search }
-    //                 ]
-    //             });
-    //         }
-
-    //         if (location) {
-    //             let coordinates;
-    //             try {
-    //                 if (typeof JSON.parse(location) === 'number') {
-    //                     throw new Error;
-    //                 }
-    //                 location = JSON.parse(location);
-    //                 coordinates = location;
-    //             } catch (err) {
-    //                 const response = await geocodingClient
-    //                     .forwardGeocode({
-    //                         query: location,
-    //                         limit: 1
-    //                     })
-    //                     .send();
-    //                 coordinates = response.body.features[0].geometry.coordinates;
-    //             }
-    //             let maxDistance = distance || 25;
-    //             maxDistance *= 1000; // convert kilometers to meters
-    //             dbQueries.push({
-    //                 geometry: {
-    //                     $near: {
-    //                         $geometry: {
-    //                             type: 'Point',
-    //                             coordinates
-    //                         },
-    //                         $maxDistance: maxDistance
-    //                     }
-    //                 }
-    //             });
-    //         }
-
-    //         if (price) {
-    //             if (price.min) {
-    //                 dbQueries.push({ price: { $gte: Number(price.min) } });
-    //             }
-    //             if (price.max) {
-    //                 dbQueries.push({ price: { $lte: Number(price.max) } });
-    //             }
-    //         }
-
-    //         if (avgRating) {
-    //             dbQueries.push({ avgRating: { $in: avgRating } });
-    //         }
-
-    //         res.locals.dbQuery = dbQueries.length ? { $and: dbQueries } : {};
-    //     }
-
-    //     res.locals.query = req.query;
-
-    //     queryKeys.splice(queryKeys.indexOf('page'), 1);
-    //     const delimiter = queryKeys.length ? '&' : '?';
-    //     res.locals.paginateUrl = req.originalUrl.replace(/(\?|\&)page=\d+/g, '') + `${delimiter}page=`;
-
-    //     next();
-    // }
 }

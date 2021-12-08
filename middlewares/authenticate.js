@@ -44,7 +44,7 @@ module.exports = {
     },
     verifyUser: passport.authenticate('jwt', { session: false, failWithError: true }),
     errorHandler: (err, req, res, next) => {
-        err.message = 'Authentication credentials were not provided.';
+        err.status = 401;
         return next(err);
     }
 }

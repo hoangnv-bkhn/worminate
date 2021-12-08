@@ -9,7 +9,9 @@ const {
   landingPage,
   postRegister,
   postLogin,
-  getActiveAccount
+  getActiveAccount,
+  postForgotPw,
+  putReset
 } = require('../controllers');
 
 const {
@@ -17,31 +19,21 @@ const {
 } = require('../middlewares');
 
 //GET /
-// res.json({ data: posts, message, success })
 router.get('/', asyncErrorHandler(landingPage));
 
-//POST /register | body(image: file, fullName: String, email: String, password: String)
-// res.json({ message, success })
+//POST /register
 router.post('/register', upload.single('image'), asyncErrorHandler(postRegister));
 
-//POST /login | body(email: String, password: String)
-// res.json({ data: {user, token}, message, success })
+//POST /login
 router.post('/login', asyncErrorHandler(postLogin));
 
 //GET /active-account/:token
-// res.json({ message, success })
 router.get('/active-account/:token', asyncErrorHandler(getActiveAccount));
 
-//POST /forgot-password | body(email: String)
-// res.json({ message, success })
-router.post('/forgot-password');
+//POST /forgot-password
+router.post('/forgot-password', asyncErrorHandler(postForgotPw));
 
-//GET /reset-password/:token
-// res.json({ data: token, message, success })
-router.get('/reset-password/:token');
-
-//PUT /reset-password/:token | body(password: String)
-// res.json({ message, success })
-router.put('/reset-password/:token');
+//PUT /reset-password/:token
+router.put('/reset-password/:token', asyncErrorHandler(putReset));
 
 module.exports = router;

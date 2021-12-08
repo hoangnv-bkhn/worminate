@@ -45,7 +45,7 @@ const PostSchema = new Schema(
             type: Schema.Types.ObjectId,
             ref: 'User'
         },
-        reviewers: [{
+        reviews: [{
             type: Schema.Types.ObjectId,
             ref: 'Review'
         }]

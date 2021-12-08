@@ -25,15 +25,12 @@ const {
 router.all('*', verifyUser, errorHandler);
 
 //GET /user/logout/:token
-// res.json({ message, success })
 router.get('/logout/:token', asyncErrorHandler(getLogout));
 
 //GET /user/profile
-// res.json({ data: posts, message, success })
-router.get('/profile');
+router.get('/profile', asyncErrorHandler(getProfile));
 
-//PUT /user/profile | body(fullName: String, image: file, password: String, newPassword: String)
-// res.json({ data: user, message, success })
+//PUT /user/profile
 router.put('/profile', upload.single('image'), asyncErrorHandler(isValidPassword), asyncErrorHandler(updateProfile));
 
 module.exports = router;

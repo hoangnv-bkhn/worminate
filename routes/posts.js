@@ -6,11 +6,14 @@ const multer = require('multer');
 const upload = multer({ storage: storage });
 
 const {
-    postCreate
+    postIndex,
+    postCreate,
+    postShow
 } = require('../controllers/posts');
 
 const {
-    asyncErrorHandler
+    asyncErrorHandler,
+    searchAndFilterPosts
 } = require('../middlewares');
 
 const {
@@ -23,24 +26,19 @@ router.post('*', verifyUser, errorHandler);
 router.put('*', verifyUser, errorHandler);
 router.delete('*', verifyUser, errorHandler);
 
-//GET /posts | params()
-// res.json({ data: posts, message, success})
-router.get('/');
+//GET /posts
+router.get('/', asyncErrorHandler(searchAndFilterPosts), asyncErrorHandler(postIndex));
 
-//POST /posts/new | body()
-// res.json({ message, success })
-router.post('/new', upload.array('images', 4), asyncErrorHandler(postCreate));
+//POST /posts
+router.post('/', upload.array('images', 4), asyncErrorHandler(postCreate));
 
 //GET /posts/:id
-// res.json({ data: post, message, success})
-router.get('/:id');
+router.get('/:id', asyncErrorHandler(postShow));
 
-//PUT /posts/:id | body()
-// res.json({ message, success})
+//PUT /posts/:id
 router.put('/:id');
 
 //DELETE /posts/:id
-// res.json({ message, success })
 router.delete('/:id');
 
 module.exports = router;

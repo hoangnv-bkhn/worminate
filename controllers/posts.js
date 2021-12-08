@@ -4,12 +4,22 @@ const geocodingClient = mbxGeocoding({ accessToken: process.env.MAPBOX_ACCESS_TO
 
 module.exports = {
     //GET /posts
-    // postIndex: async (req, res, next) => {
-    // },
-    //GET /posts/new
-    // postNew: (req, res, next) => {
-    // },
-    //POST /posts/new
+    postIndex: async (req, res, next) => {
+        const { dbQuery } = res.locals;
+        delete res.locals.dbQuery;
+        let posts = await Post.paginate(dbQuery, {
+            page: req.query.page || 1,
+            limit: 10,
+            sort: '-_id' /* add - in front of field for decending order
+            in mongoose sort by id similar to sort by time that item is created*/
+        });
+        posts.page = Number(posts.page);
+        if (!posts.docs.length && req.query) {
+            res.status(404).json({ payload: {}, statusCode: 404 });
+        }
+        res.status(200).json({ payload: { posts: posts }, statusCode: 200 });
+    },
+    //POST /posts
     postCreate: async (req, res, next) => {
         req.body.post.images = [];
         for (const file of req.files) {
@@ -27,19 +37,20 @@ module.exports = {
         const post = new Post(req.body.post);
         post.properties.description = `<strong><a href="/posts/${post._id}">${post.title}</a></strong><p>${post.location}</p><p>${post.description.substring(0, 20)}...</p>`;
         await post.save();
-        res.json({ detail: 'Post saved successfully.' });
+        res.status(200).json({ payload: { post: post }, statusCode: 200 });
     },
-    //POST /posts/:id
-    // postShow: async (req, res, next) => {
-    //     const post = await Post.findById(req.params.id).populate({
-    //         path: 'reviews',
-    //         options: { sort: { '_id': -1 } },
-    //         populate: {
-    //             path: 'author',
-    //             model: 'User'
-    //         }
-    //     });
-    // },
+    //GET /posts/:id
+    postShow: async (req, res, next) => {
+        const post = await Post.findById(req.params.id).populate({
+            path: 'reviews',
+            options: { sort: { '_id': -1 } },
+            populate: {
+                path: 'author',
+                model: 'User'
+            }
+        });
+        res.json({ payload: { post: post }, statusCode: 200 });
+    }
     //DELETE /posts/:id
     // postDestroy: async (req, res, next) => {
     // }
