@@ -6,7 +6,7 @@ const multer = require('multer');
 const upload = multer({ storage: storage });
 
 const {
-    getLogout,
+    postRegister,
     getProfile,
     updateProfile
 } = require('../controllers');
@@ -21,16 +21,24 @@ const {
     errorHandler
 } = require('../middlewares/authenticate');
 
-/* ALL request */
-router.all('*', verifyUser, errorHandler);
+/* GET PUT DELETE request */
+router.get('*', verifyUser, errorHandler);
+router.put('*', verifyUser, errorHandler);
+router.delete('*', verifyUser, errorHandler);
 
-//GET /user/logout/:token
-router.get('/logout/:token', asyncErrorHandler(getLogout));
+//GET /api/user
+router.get('/');
 
-//GET /user/profile
-router.get('/profile', asyncErrorHandler(getProfile));
+//POST /api/user
+router.post('/', upload.single('image'), asyncErrorHandler(postRegister));
 
-//PUT /user/profile
-router.put('/profile', upload.single('image'), asyncErrorHandler(isValidPassword), asyncErrorHandler(updateProfile));
+//GET /api/user/{userId}
+router.get('/:id', asyncErrorHandler(getProfile));
+
+//PUT /api/user/{userId}
+router.put('/:id', upload.single('image'), asyncErrorHandler(isValidPassword), asyncErrorHandler(updateProfile));
+
+//DELETE /api/user/{userId}
+router.delete('/:id');
 
 module.exports = router;

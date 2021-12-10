@@ -11,6 +11,7 @@ const methodOverride = require('method-override');
 const indexRouter = require('./routes/index');
 const userRouter = require('./routes/user');
 const postsRouter = require('./routes/posts');
+const reviewsRouter = require('./routes/reviews');
 
 const app = express();
 
@@ -42,9 +43,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(passport.initialize());
 require('./middlewares/authenticate');
 
-app.use('/', indexRouter);
-app.use('/user', userRouter);
-app.use('/posts', postsRouter);
+app.use('/api', indexRouter);
+app.use('/api/user', userRouter);
+app.use('/api/posts', postsRouter);
+app.use('/api/posts/:id/reviews', reviewsRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -56,14 +58,10 @@ app.use(function(err, req, res, next) {
   // set locals, only providing error in development
   // res.locals.message = err.message;
   // res.locals.error = req.app.get('env') === 'development' ? err : {};
-  const error = {
-    payload: {},
-    statusCode: err.status
-  }
 
   // render the error page
   res.status(err.status || 500);
-  res.json(error);
+  res.json({});
 });
 
 module.exports = app;

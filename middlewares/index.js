@@ -1,4 +1,6 @@
 const User = require('../models/User');
+const Post = require('../models/Post');
+const Review = require('../models/Review');
 const createError = require('http-errors');
 const { cloudinary } = require('../cloudinary');
 
@@ -32,8 +34,24 @@ module.exports = {
     isValidPassword: async (req, res, next) => {
         const { password } = req.body;
         const { user, error } = await User.authenticate()(req.user.email, password);
-        if (!user && error) return next(error);
+        if (!user && error) {
+            await cloudinary.uploader.destroy(req.file.filename);
+            return next(createError(404));
+        }
         else next();
+    },
+    isAuthor: async (req, res, next) => {
+        const post = await Post.findById(req.params.id);
+        if (post.author.equals(req.user._id)) {
+            res.locals.post = post;
+            return next();
+        } else next(createError(403));
+    },
+    isReviewAuthor: async (req, res, next) => {
+        const review = await Review.findById(req.params.review_id);
+        if (review.author.equals(req.user._id)) {
+            return next();
+        } else next(createError(403));
     },
     searchAndFilterPosts: async (req, res, next) => {
         const queryKeys = Object.keys(req.query);

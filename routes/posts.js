@@ -8,11 +8,14 @@ const upload = multer({ storage: storage });
 const {
     postIndex,
     postCreate,
-    postShow
+    postShow,
+    postUpdate,
+    postDestroy
 } = require('../controllers/posts');
 
 const {
     asyncErrorHandler,
+    isAuthor,
     searchAndFilterPosts
 } = require('../middlewares');
 
@@ -26,19 +29,19 @@ router.post('*', verifyUser, errorHandler);
 router.put('*', verifyUser, errorHandler);
 router.delete('*', verifyUser, errorHandler);
 
-//GET /posts
+//GET /api/posts
 router.get('/', asyncErrorHandler(searchAndFilterPosts), asyncErrorHandler(postIndex));
 
-//POST /posts
+//POST /api/posts
 router.post('/', upload.array('images', 4), asyncErrorHandler(postCreate));
 
-//GET /posts/:id
+//GET /api/posts/{postId}
 router.get('/:id', asyncErrorHandler(postShow));
 
-//PUT /posts/:id
-router.put('/:id');
+//PUT /api/posts/{postId}
+router.put('/:id', asyncErrorHandler(isAuthor), upload.array('images', 4), asyncErrorHandler(postUpdate));
 
-//DELETE /posts/:id
-router.delete('/:id');
+//DELETE /api/posts/{postId}
+router.delete('/:id', asyncErrorHandler(isAuthor), asyncErrorHandler(postDestroy));
 
 module.exports = router;

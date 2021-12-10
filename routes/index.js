@@ -7,8 +7,8 @@ const upload = multer({ storage: storage });
 
 const {
   landingPage,
-  postRegister,
   postLogin,
+  postLogout,
   getActiveAccount,
   postForgotPw,
   putReset
@@ -18,22 +18,27 @@ const {
   asyncErrorHandler
 } = require('../middlewares');
 
-//GET /
+const {
+  verifyUser,
+  errorHandler
+} = require('../middlewares/authenticate');
+
+//GET /api
 router.get('/', asyncErrorHandler(landingPage));
 
-//POST /register
-router.post('/register', upload.single('image'), asyncErrorHandler(postRegister));
-
-//POST /login
+//POST /api/login
 router.post('/login', asyncErrorHandler(postLogin));
 
-//GET /active-account/:token
+//POST /api/logout
+router.post('/logout', verifyUser, errorHandler, asyncErrorHandler(postLogout));
+
+//GET /api/active-account/{token}
 router.get('/active-account/:token', asyncErrorHandler(getActiveAccount));
 
-//POST /forgot-password
+//POST /api/forgot-password
 router.post('/forgot-password', asyncErrorHandler(postForgotPw));
 
-//PUT /reset-password/:token
+//PUT /api/reset-password/:token
 router.put('/reset-password/:token', asyncErrorHandler(putReset));
 
 module.exports = router;

@@ -52,6 +52,14 @@ const PostSchema = new Schema(
     }
 );
 
+PostSchema.pre('remove', async function () {
+    await Review.remove({
+        _id: {
+            $in: this.reviews
+        }
+    })
+});
+
 PostSchema.plugin(mongoosePaginate);
 
 //Export model

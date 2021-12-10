@@ -41,12 +41,12 @@ activeAccount = (email, req) => {
 }
 
 module.exports = {
-    //GET /
+    //GET /api
     landingPage: async (req, res, next) => {
-        const posts = await Post.find({});
-        res.status(200).json({ payload: { posts: posts }, statusCode: 200 });
+        const posts = await Post.find({}).limit(200).exec();
+        res.status(200).json({ posts: posts });
     },
-    //POST /register
+    //POST /api/user
     postRegister: async (req, res, next) => {
         if (req.file) {
             const { path, filename } = req.file;
@@ -54,34 +54,41 @@ module.exports = {
         }
         const user = await User.register(new User(req.body), req.body.password);
         activeAccount(user.email, req);
-        res.status(200).json({ payload: {}, statusCode: 200 });
+        res.status(200).json({});
     },
-    //POST /login
+    //POST /api/login
     postLogin: async (req, res, next) => {
         const { email, password } = req.body;
         const { user, error } = await User.authenticate()(email, password);
-        if (!user && error) return next(createError(401));
+        if (!user && error) return next(createError(404));
         const sessionToken = crypto.randomBytes(20).toString('hex');
         user.sessionToken.push({ token: sessionToken });
         await user.save();
         const token = getToken({ _id: user._id, sessionToken: sessionToken });
-        res.status(200).json({ payload: { token: token, user: user }, statusCode: 200 });
+        res.status(200).json({ user: user, token: token });
     },
-    //GET /logout
-    getLogout: async (req, res, next) => {
-        const { token } = req.params;
+    //POST /api/logout
+    postLogout: async (req, res, next) => {
+        const { token } = req.body;
         const { sessionToken, _id } = decodeToken(token);
         const user = await User.findOne({ _id });
         user.sessionToken = user.sessionToken.filter(session => session.token != sessionToken);
         await user.save();
-        res.status(200).json({ payload: {}, statusCode: 200 });
+        res.status(200).json({});
     },
-    //GET /profile
+    //GET /api/user/{userId}
     getProfile: async (req, res, next) => {
-        const posts = await Post.find().where('author').equals(req.user._id).limit(10).exec();
-        res.status(200).json({ payload: { posts: posts }, statusCode: 200 });
+        if (req.user.admin) {
+            let { id } = req.params;
+            let user = await User.findOne({ _id: id });
+            let posts = await Post.find().where('author').equals(id).limit(10).exec();
+            res.status(200).json({ user: user, posts: posts })
+        } else {
+            let posts = await Post.find().where('author').equals(req.user._id).limit(10).exec();
+            res.status(200).json({ posts: posts });
+        }
     },
-    //PUT /profile
+    //PUT /api/user
     updateProfile: async (req, res, next) => {
         const { fullName, newPassword } = req.body;
         const user = req.user;
@@ -97,9 +104,9 @@ module.exports = {
         }
         if (newPassword) await user.setPassword(newPassword);
         if (fullName || req.file || newPassword) await user.save();
-        res.status(200).json({ payload: { user: user }, statusCode: 200 });
+        res.status(200).json({ user: user });
     },
-    //GET /active-account
+    //GET /api/active-account/{token}
     getActiveAccount: async (req, res, next) => {
         const { token } = req.params;
         const user = await User.findOne({
@@ -107,15 +114,15 @@ module.exports = {
             accountTokenExpires: { $gt: Date.now() }
         });
         if (!user) {
-            return next(createError(401));
+            return next(createError(404));
         }
         user.accountToken = null;
         user.accountTokenExpires = null;
         user.active = true;
         await user.save();
-        res.status(200).json({ payload: {}, statusCode: 200 });
+        res.status(200).json({});
     },
-    //POST /forgot-password
+    //POST /api/forgot-password
     postForgotPw: async (req, res, next) => {
         const { email } = req.body;
         const token = crypto.randomBytes(20).toString('hex');
@@ -129,9 +136,9 @@ module.exports = {
 			If you did not request this, please ignore this email and your password will remain unchanged.`.replace(/			/g, '')
         };
         activeToken(email, msg, token, false);
-        res.status(200).json({ payload: {}, statusCode: 200 });
+        res.status(200).json({});
     },
-    //PUT /reset-password/:token
+    //PUT /api/reset-password/{token}
     putReset: async (req, res, next) => {
         const { token } = req.params;
         const user = await User.findOne({
@@ -139,7 +146,7 @@ module.exports = {
             accountTokenExpires: { $gt: Date.now() }
         });
         if (!user) {
-            return next(createError(401));
+            return next(createError(404));
         }
         await user.setPassword(req.body.password);
         user.accountToken = null;
@@ -154,6 +161,6 @@ module.exports = {
             If you did not make this change, please hit reply and notify us at once.`.replace(/            /g, '')
         };
         await sgMail.send(msg);
-        res.status(200).json({ payload: {}, statusCode: 200 });
+        res.status(200).json({});
     }
 }
