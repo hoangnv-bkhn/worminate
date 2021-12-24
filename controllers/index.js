@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Post = require('../models/Post');
+const createError = require('http-errors');
 const crypto = require('crypto');
 const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -13,10 +14,9 @@ const {
     decodeToken
 } = require('../middlewares/authenticate');
 
-activeToken = async (email, msg, fn) => {
+activeToken = async (email, msg, token, fn) => {
     /* If fn = true => active account
     Else => forgot password */
-    const token = crypto.randomBytes(20).toString('hex');
     const user = await User.findOne({ email });
     if (user && ((fn && !user.active) || (!fn && user.active))) {
         user.accountToken = token;
@@ -27,6 +27,7 @@ activeToken = async (email, msg, fn) => {
 }
 
 activeAccount = (email, req) => {
+    const token = crypto.randomBytes(20).toString('hex');
     const msg = {
         to: email,
         from: 'Worminate Admin <tokyo.example@gmail.com>',
@@ -36,20 +37,16 @@ activeAccount = (email, req) => {
         http://${req.headers.host}/active-account/${token}
         If you did not request this, please ignore this email.`.replace(/			/g, '')
     };
-    activeToken(email, msg, true);
+    activeToken(email, msg, token, true);
 }
 
 module.exports = {
-    //GET /
+    //GET /api
     landingPage: async (req, res, next) => {
-        const posts = await Post.find({});
-        res.json({ data: posts, message: 'Posts show successfully.', success: true });
+        const posts = await Post.find({}).limit(200).exec();
+        res.status(200).json({ posts: posts });
     },
-    //GET /register
-    getRegister: (req, res, next) => {
-        res.json({ message: 'Ready to register', success: true });
-    },
-    //POST /register
+    //POST /api/user
     postRegister: async (req, res, next) => {
         if (req.file) {
             const { path, filename } = req.file;
@@ -57,40 +54,43 @@ module.exports = {
         }
         const user = await User.register(new User(req.body), req.body.password);
         activeAccount(user.email, req);
-        res.json({ message: 'Account created successfully.', success: true });
+        res.status(200).json({});
     },
-    //GET /login
-    getLogin: (req, res, next) => {
-        res.json({ message: 'Ready to login', success: true });
-    },
-    //POST /login
+    //POST /api/login
     postLogin: async (req, res, next) => {
         const { email, password } = req.body;
         const { user, error } = await User.authenticate()(email, password);
-        if (!user && error) return next(error);
+        if (!user && error) return next(createError(404));
         const sessionToken = crypto.randomBytes(20).toString('hex');
         user.sessionToken.push({ token: sessionToken });
         await user.save();
         const token = getToken({ _id: user._id, sessionToken: sessionToken });
-        res.json({ data: { token: token, user: user }, message: 'Account logged successfully.', success: true });
+        res.status(200).json({ user: user, token: token });
     },
-    //GET /logout
-    getLogout: async (req, res, next) => {
-        const { token } = req.params;
+    //POST /api/logout
+    postLogout: async (req, res, next) => {
+        const { token } = req.body;
         const { sessionToken, _id } = decodeToken(token);
         const user = await User.findOne({ _id });
         user.sessionToken = user.sessionToken.filter(session => session.token != sessionToken);
         await user.save();
-        res.json({ message: 'Logout successfully.', success: true });
+        res.status(200).json({});
     },
-    //GET /profile
+    //GET /api/user/{userId}
     getProfile: async (req, res, next) => {
-        const posts = await Post.find().where('author').equals(req.user._id).limit(10).exec();
-        res.json({ user: req.user, data: posts, message: 'Profile shows successfully.', success: true });
+        if (req.user.admin) {
+            let { id } = req.params;
+            let user = await User.findOne({ _id: id });
+            let posts = await Post.find().where('author').equals(id).limit(10).exec();
+            res.status(200).json({ user: user, posts: posts })
+        } else {
+            let posts = await Post.find().where('author').equals(req.user._id).limit(10).exec();
+            res.status(200).json({ posts: posts });
+        }
     },
-    //PUT /profile
+    //PUT /api/user
     updateProfile: async (req, res, next) => {
-        const { fullName } = req.body;
+        const { fullName, newPassword } = req.body;
         const user = req.user;
         if (fullName) {
             user.fullName = fullName;
@@ -102,10 +102,11 @@ module.exports = {
             const { path, filename } = req.file;
             user.image = { path, filename };
         }
-        if (fullName || req.file) await user.save();
-        res.json({ data: user, message: 'Update profile successfully.', success: true });
+        if (newPassword) await user.setPassword(newPassword);
+        if (fullName || req.file || newPassword) await user.save();
+        res.status(200).json({ user: user });
     },
-    //GET /active-account
+    //GET /api/active-account/{token}
     getActiveAccount: async (req, res, next) => {
         const { token } = req.params;
         const user = await User.findOne({
@@ -113,12 +114,53 @@ module.exports = {
             accountTokenExpires: { $gt: Date.now() }
         });
         if (!user) {
-            return next(createError('Account activation error'));
+            return next(createError(404));
         }
         user.accountToken = null;
         user.accountTokenExpires = null;
         user.active = true;
         await user.save();
-        res.json({ detail: 'Account activated successfully.' });
+        res.status(200).json({});
+    },
+    //POST /api/forgot-password
+    postForgotPw: async (req, res, next) => {
+        const { email } = req.body;
+        const token = crypto.randomBytes(20).toString('hex');
+        const msg = {
+            to: email,
+            from: 'Worminate Admin <tokyo.example@gmail.com>',
+            subject: 'Worminate - Forgot Password / Reset',
+            text: `You are receiving this because you (or someone else) have requested the reset of the password for your account.
+			Please click on the following link, or copy and paste it into your browser to complete the process:
+			http://${req.headers.host}/reset/${token}
+			If you did not request this, please ignore this email and your password will remain unchanged.`.replace(/			/g, '')
+        };
+        activeToken(email, msg, token, false);
+        res.status(200).json({});
+    },
+    //PUT /api/reset-password/{token}
+    putReset: async (req, res, next) => {
+        const { token } = req.params;
+        const user = await User.findOne({
+            accountToken: token,
+            accountTokenExpires: { $gt: Date.now() }
+        });
+        if (!user) {
+            return next(createError(404));
+        }
+        await user.setPassword(req.body.password);
+        user.accountToken = null;
+        user.accountTokenExpires = null;
+        await user.save();
+        const msg = {
+            to: user.email,
+            from: 'Worminate Admin <tokyo.example@gmail.com>',
+            subject: 'Worminate - Password Changed',
+            text: `Hello,
+            This email is to confirm that the password for your account has just been changed.
+            If you did not make this change, please hit reply and notify us at once.`.replace(/            /g, '')
+        };
+        await sgMail.send(msg);
+        res.status(200).json({});
     }
 }

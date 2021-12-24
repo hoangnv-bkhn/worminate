@@ -11,6 +11,7 @@ const methodOverride = require('method-override');
 const indexRouter = require('./routes/index');
 const userRouter = require('./routes/user');
 const postsRouter = require('./routes/posts');
+const reviewsRouter = require('./routes/reviews');
 
 const app = express();
 
@@ -25,6 +26,9 @@ mongoose.connect(mongoDB, { useNewUrlParser: true , useUnifiedTopology: true});
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 db.once('open', function(){ console.log('MongoDB connection open'); });
+require('./models/User');
+require('./models/Post');
+require('./models/Review');
 
 // view engine setup
 // app.set('views', path.join(__dirname, 'views'));
@@ -39,9 +43,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(passport.initialize());
 require('./middlewares/authenticate');
 
-app.use('/', indexRouter);
-app.use('/user', userRouter);
-app.use('/posts', postsRouter);
+app.use('/api', indexRouter);
+app.use('/api/user', userRouter);
+app.use('/api/posts', postsRouter);
+app.use('/api/posts/:id/reviews', reviewsRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -53,17 +58,10 @@ app.use(function(err, req, res, next) {
   // set locals, only providing error in development
   // res.locals.message = err.message;
   // res.locals.error = req.app.get('env') === 'development' ? err : {};
-  if (!err) {
-    err.message = 'An unspecified error occurred.';
-  }
 
   // render the error page
   res.status(err.status || 500);
-  const error = {
-    message: err.message,
-    success: false
-  };
-  res.json(error);
+  res.json({});
 });
 
 module.exports = app;

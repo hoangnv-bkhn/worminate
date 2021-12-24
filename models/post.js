@@ -45,12 +45,20 @@ const PostSchema = new Schema(
             type: Schema.Types.ObjectId,
             ref: 'User'
         },
-        reviewers: [{
+        reviews: [{
             type: Schema.Types.ObjectId,
             ref: 'Review'
         }]
     }
 );
+
+PostSchema.pre('remove', async function () {
+    await Review.remove({
+        _id: {
+            $in: this.reviews
+        }
+    })
+});
 
 PostSchema.plugin(mongoosePaginate);
 

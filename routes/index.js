@@ -7,41 +7,38 @@ const upload = multer({ storage: storage });
 
 const {
   landingPage,
-  postRegister,
   postLogin,
-  getActiveAccount
+  postLogout,
+  getActiveAccount,
+  postForgotPw,
+  putReset
 } = require('../controllers');
 
 const {
   asyncErrorHandler
 } = require('../middlewares');
 
-//GET /
-// res.json({ data: posts, message, success })
+const {
+  verifyUser,
+  errorHandler
+} = require('../middlewares/authenticate');
+
+//GET /api
 router.get('/', asyncErrorHandler(landingPage));
 
-//POST /register | body(image: file, fullName: String, email: String, password: String)
-// res.json({ message, success })
-router.post('/register', upload.single('image'), asyncErrorHandler(postRegister));
-
-//POST /login | body(email: String, password: String)
-// res.json({ data: {user, token}, message, success })
+//POST /api/login
 router.post('/login', asyncErrorHandler(postLogin));
 
-//GET /active-account/:token
-// res.json({ message, success })
+//POST /api/logout
+router.post('/logout', verifyUser, errorHandler, asyncErrorHandler(postLogout));
+
+//GET /api/active-account/{token}
 router.get('/active-account/:token', asyncErrorHandler(getActiveAccount));
 
-//POST /forgot-password | body(email: String)
-// res.json({ message, success })
-router.post('/forgot-password');
+//POST /api/forgot-password
+router.post('/forgot-password', asyncErrorHandler(postForgotPw));
 
-//GET /reset-password/:token
-// res.json({ data: token, message, success })
-router.get('/reset-password/:token');
-
-//PUT /reset-password/:token | body(password: String)
-// res.json({ message, success })
-router.put('/reset-password/:token');
+//PUT /api/reset-password/:token
+router.put('/reset-password/:token', asyncErrorHandler(putReset));
 
 module.exports = router;
