@@ -57,12 +57,13 @@ const PostSchema = new Schema(
             type: Number,
             default: 0
         },
-        productScore: {
+        postScore: {
             type: Number,
             default: 0
         },
         bonusLevel: {
             type: Number,
+            enum: [0, 1, 2, 3],
             default: 0
         },
         trendingPost: {

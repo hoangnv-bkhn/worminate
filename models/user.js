@@ -35,7 +35,7 @@ const UserSchema = new Schema(
                 token: String
             }
         ],
-        productsScore: {
+        postsScore: {
             type: Number,
             default: 0
         },
