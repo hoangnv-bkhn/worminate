@@ -1,4 +1,4 @@
-//Set up mongoose connection
+// Set up mongoose connection
 const mongoose = require('mongoose');
 const mongoDB = "mongodb+srv://dungUser:dungNt2000@cluster0.vkheq.mongodb.net/dbWorminate?retryWrites=true&w=majority";
 mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -21,7 +21,7 @@ const User = require('../models/User');
 
 module.exports = {
     get_all_posts: async () => {
-        let posts = await Post.find({}).exec();
+        let posts = await Post.find({}).populate('author', 'userRank').exec();
         return posts;
     },
     get_all_users: async () => {
