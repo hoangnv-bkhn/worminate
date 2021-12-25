@@ -128,5 +128,26 @@ module.exports = {
         }
         await post.remove();
         res.status(200).json({});
+    },
+    //GET /posts/:id/favorite
+    postFavorite: async (req, res, next) => {
+        const { id } = req.params;
+        const user = req.user;
+        let check = 0;
+        if (user.favoritesProduct.length > 9) {
+            user.favoritesProduct.splice(0, 1);
+        }
+        user.favoritesProduct.map(item => {
+            if (id == item._id.toString()) {
+                check++;
+            }
+        });
+        if (check > 0) {
+            return res.status(409).json({});
+        } else {
+            user.favoritesProduct.push(id);
+            await user.save();
+        }
+        res.status(200).json({});
     }
 }

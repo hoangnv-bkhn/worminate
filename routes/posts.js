@@ -10,7 +10,8 @@ const {
     postCreate,
     postShow,
     postUpdate,
-    postDestroy
+    postDestroy,
+    postFavorite
 } = require('../controllers/posts');
 
 const {
@@ -47,5 +48,8 @@ router.put('/:id', validateParams, asyncErrorHandler(isAuthor), upload.array('im
 
 //DELETE /api/posts/{postId}
 router.delete('/:id', validateParams, asyncErrorHandler(isAuthor), asyncErrorHandler(postDestroy));
+
+//GET /api/posts/{postId}/favorite
+router.get('/:id/favorite', verifyUser, errorHandler, validateParams, asyncErrorHandler(postFavorite));
 
 module.exports = router;
