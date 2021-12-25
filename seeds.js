@@ -1,6 +1,7 @@
 const faker = require('faker');
 const Post = require('./models/Post');
 const Review = require('./models/Review');
+const User = require('./models/User');
 const cities = require('./cities');
 
 async function seedPosts() {
@@ -13,7 +14,7 @@ async function seedPosts() {
         const review = await Review.create({
             body: faker.lorem.word(30),
             rating: random5,
-            author: '61b2da2ea74b4f0de843a7d1'
+            author: '61c6a785262288153020e7db'
         });
         const postData = {
             title,
@@ -24,7 +25,7 @@ async function seedPosts() {
                 coordinates: [cities[random1000].longitude, cities[random1000].latitude],
             },
             price: random1000,
-            author: '61b2d9caa74b4f0de843a7ca',
+            author: '61c6a77b262288153020e7d6',
             images: [
                 {
                     path: 'https://picsum.photos/1000/1500',
@@ -55,6 +56,8 @@ async function seedPosts() {
         await post.reviewsScoreCaculate();
     }
     console.log('600 new posts created');
+    const user = await User.findById('61c6a785262288153020e7db');
+    user.caculateAge();
 }
 
 module.exports = seedPosts;

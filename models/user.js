@@ -36,7 +36,7 @@ const UserSchema = new Schema(
             }
         ],
         productsScore: {
-            type: String,
+            type: Number,
             default: 0
         },
         favoritesProduct: [
@@ -46,11 +46,15 @@ const UserSchema = new Schema(
             }
         ],
         salesHistory: {
-            type: String,
+            type: Number,
+            default: 0
+        },
+        usedTokens: {
+            type: Number,
             default: 0
         },
         creditLevel: {
-            type: String,
+            type: Number,
             default: 0
         },
         createdAt: {
@@ -79,7 +83,7 @@ const UserSchema = new Schema(
 UserSchema.methods.caculateAge = function () {
     const ageAccount = Date.now() - this.createdAt;
     this.ageAccount = Math.floor(ageAccount / 1000);
-    console.log(this.ageAccount);
+    this.save();
 }
 
 UserSchema.plugin(passportLocalMongoose, {

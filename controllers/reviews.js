@@ -26,6 +26,7 @@ module.exports = {
     // Reviews Update
     async reviewUpdate(req, res, next) {
         await Review.findByIdAndUpdate(req.params.review_id, req.body.review);
+        await Post.findById(req.params.id).reviewsScoreCaculate();
         res.status(200).json({});
     },
     // Reviews Destroy
@@ -34,6 +35,7 @@ module.exports = {
             $pull: { reviews: req.params.review_id }
         });
         await Review.findByIdAndRemove(req.params.review_id);
+        await Post.findById(req.params.id).reviewsScoreCaculate();
         res.status(200).json({});
     }
 }
