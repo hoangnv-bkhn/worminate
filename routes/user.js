@@ -12,8 +12,13 @@ const {
 } = require('../controllers');
 
 const {
+    getUsers
+} = require('../controllers/admin');
+
+const {
     asyncErrorHandler,
-    isValidPassword
+    isValidPassword,
+    isAdmin
 } = require('../middlewares');
 
 const {
@@ -32,7 +37,7 @@ router.put('*', verifyUser, errorHandler);
 router.delete('*', verifyUser, errorHandler);
 
 //GET /api/user
-router.get('/');
+router.get('/', isAdmin, asyncErrorHandler(getUsers));
 
 //POST /api/user
 router.post('/', upload.single('image'), validateBody, asyncErrorHandler(postRegister));

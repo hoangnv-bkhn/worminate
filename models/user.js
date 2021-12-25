@@ -71,7 +71,7 @@ const UserSchema = new Schema(
         userRank: {
             type: String,
             enum: ['A', 'B', 'C', 'D', 'S'],
-            default: 'A'
+            default: 'D'
         },
         accountToken: String,
         accountTokenExpires: Date

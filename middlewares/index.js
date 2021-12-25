@@ -47,6 +47,12 @@ module.exports = {
             return next();
         } else next(createError(403));
     },
+    isAdmin: (req, res, next) => {
+        if (req.user) {
+            if (req.user.admin) return next();
+        }
+        next(createError(403));
+    },
     isReviewAuthor: async (req, res, next) => {
         const review = await Review.findById(req.params.review_id);
         if (review.author.equals(req.user._id)) {
