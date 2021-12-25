@@ -7,6 +7,8 @@ const passport = require('passport');
 const compression = require('compression');
 const helmet = require('helmet');
 const methodOverride = require('method-override');
+const rateLimit = require("express-rate-limit");
+const cors = require('cors');
 
 const indexRouter = require('./routes/index');
 const userRouter = require('./routes/user');
@@ -15,8 +17,15 @@ const reviewsRouter = require('./routes/reviews');
 
 const app = express();
 
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100 // limit each IP to 100 requests per windowMs
+});
+app.use(limiter);
+
 app.use(compression());
 app.use(helmet());
+app.use(cors());
 app.use(methodOverride('_method'));
 
 //Set up mongoose connection
@@ -29,6 +38,8 @@ db.once('open', function(){ console.log('MongoDB connection open'); });
 require('./models/User');
 require('./models/Post');
 require('./models/Review');
+// const seedPosts = require('./seeds');
+// seedPosts();
 
 // view engine setup
 // app.set('views', path.join(__dirname, 'views'));
@@ -58,6 +69,7 @@ app.use(function(err, req, res, next) {
   // set locals, only providing error in development
   // res.locals.message = err.message;
   // res.locals.error = req.app.get('env') === 'development' ? err : {};
+  if (err.http_code) err.status = err.http_code;
 
   // render the error page
   res.status(err.status || 500);

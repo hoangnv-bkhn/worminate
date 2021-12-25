@@ -48,9 +48,40 @@ const PostSchema = new Schema(
         reviews: [{
             type: Schema.Types.ObjectId,
             ref: 'Review'
-        }]
+        }],
+        reviewsScore: {
+            type: Number,
+            default: 0
+        },
+        productScore: {
+            type: Number,
+            default: 0
+        },
+        bonusLevel: {
+            type: Number,
+            default: 0
+        },
+        trendingPost: {
+            type: Number,
+            default: 0
+        }
     }
 );
+
+PostSchema.methods.reviewsScoreCaculate = async function () {
+    let reviewsScoreTotal = 0;
+    if (this.reviews.length) {
+        this.reviews.forEach(review => {
+            reviewsScoreTotal += review.rating;
+        });
+        this.reviewsScore = Math.round((reviewsScoreTotal / this.reviews.length) * 10) / 10;
+    } else {
+        this.reviewsScore = reviewsScoreTotal;
+    }
+    // const reviewsScoreTotal = Math.floor(this.reviewsScore);
+    this.save();
+    // return reviewsScoreTotal;
+};
 
 PostSchema.pre('remove', async function () {
     await Review.remove({

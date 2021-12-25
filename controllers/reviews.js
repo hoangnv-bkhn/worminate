@@ -20,6 +20,7 @@ module.exports = {
         post.reviews.push(review);
         // save the post
         await post.save();
+        await post.reviewsScoreCaculate();
         res.status(200).json({});
     },
     // Reviews Update

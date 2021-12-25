@@ -34,7 +34,7 @@ activeAccount = (email, req) => {
         subject: 'Worminate - Active Account',
         text: `You are receiving this because you (or someone else) have requested to activate your account.
         Please click on the following link, or copy and paste it into your browser to complete the process:
-        http://${req.headers.host}/active-account/${token}
+        http://${req.headers.host}/api/active-account/${token}
         If you did not request this, please ignore this email.`.replace(/			/g, '')
     };
     activeToken(email, msg, token, true);
@@ -132,7 +132,7 @@ module.exports = {
             subject: 'Worminate - Forgot Password / Reset',
             text: `You are receiving this because you (or someone else) have requested the reset of the password for your account.
 			Please click on the following link, or copy and paste it into your browser to complete the process:
-			http://${req.headers.host}/reset/${token}
+			http://${req.headers.host}/api/reset/${token}
 			If you did not request this, please ignore this email and your password will remain unchanged.`.replace(/			/g, '')
         };
         activeToken(email, msg, token, false);

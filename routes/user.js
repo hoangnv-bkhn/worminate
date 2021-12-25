@@ -21,6 +21,11 @@ const {
     errorHandler
 } = require('../middlewares/authenticate');
 
+const {
+    validateParams,
+    validateBody
+} = require('../middlewares/reqValidate');
+
 /* GET PUT DELETE request */
 router.get('*', verifyUser, errorHandler);
 router.put('*', verifyUser, errorHandler);
@@ -30,15 +35,15 @@ router.delete('*', verifyUser, errorHandler);
 router.get('/');
 
 //POST /api/user
-router.post('/', upload.single('image'), asyncErrorHandler(postRegister));
+router.post('/', upload.single('image'), validateBody, asyncErrorHandler(postRegister));
 
 //GET /api/user/{userId}
-router.get('/:id', asyncErrorHandler(getProfile));
+router.get('/:id', validateParams, asyncErrorHandler(getProfile));
 
 //PUT /api/user/{userId}
-router.put('/:id', upload.single('image'), asyncErrorHandler(isValidPassword), asyncErrorHandler(updateProfile));
+router.put('/:id', validateParams, upload.single('image'), validateBody, asyncErrorHandler(isValidPassword), asyncErrorHandler(updateProfile));
 
 //DELETE /api/user/{userId}
-router.delete('/:id');
+router.delete('/:id', validateParams);
 
 module.exports = router;
