@@ -13,6 +13,7 @@ const cron = require('node-cron');
 
 const indexRouter = require('./routes/index');
 const userRouter = require('./routes/user');
+const adminRouter = require('./routes/admin');
 const postsRouter = require('./routes/posts');
 const reviewsRouter = require('./routes/reviews');
 
@@ -78,6 +79,7 @@ app.use(passport.initialize());
 require('./middlewares/authenticate');
 
 app.use('/api', indexRouter);
+app.use('/api/admin', adminRouter);
 app.use('/api/user', userRouter);
 app.use('/api/posts', postsRouter);
 app.use('/api/posts/:id/reviews', reviewsRouter);

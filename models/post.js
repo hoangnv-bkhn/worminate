@@ -45,6 +45,10 @@ const PostSchema = new Schema(
             type: Schema.Types.ObjectId,
             ref: 'User'
         },
+        category: {
+            type: Schema.Types.ObjectId,
+            ref: 'Category'
+        },
         reviews: [{
             type: Schema.Types.ObjectId,
             ref: 'Review'
@@ -53,12 +57,13 @@ const PostSchema = new Schema(
             type: Number,
             default: 0
         },
-        productScore: {
+        postScore: {
             type: Number,
             default: 0
         },
         bonusLevel: {
             type: Number,
+            enum: [0, 1, 2, 3],
             default: 0
         },
         trendingPost: {
@@ -79,7 +84,7 @@ PostSchema.methods.reviewsScoreCaculate = async function () {
         this.reviewsScore = reviewsScoreTotal;
     }
     // const reviewsScoreTotal = Math.floor(this.reviewsScore);
-    this.save();
+    await this.save();
     // return reviewsScoreTotal;
 };
 
