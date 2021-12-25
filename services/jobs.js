@@ -3,6 +3,7 @@ const {
     get_all_users
 } = require('./database_services');
 
-(async () => {
-    console.log(await get_all_users())
-})()
+let posts = get_all_users()
+posts.then(function (users) {
+    console.log(users)
+})
