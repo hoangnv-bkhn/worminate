@@ -38,6 +38,8 @@ db.once('open', function(){ console.log('MongoDB connection open'); });
 require('./models/User');
 require('./models/Post');
 require('./models/Review');
+// const seedPosts = require('./seeds');
+// seedPosts();
 
 // view engine setup
 // app.set('views', path.join(__dirname, 'views'));

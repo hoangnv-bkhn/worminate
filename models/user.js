@@ -35,6 +35,35 @@ const UserSchema = new Schema(
                 token: String
             }
         ],
+        productsScore: {
+            type: String,
+            default: 0
+        },
+        favoritesProduct: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: 'Post'
+            }
+        ],
+        salesHistory: {
+            type: String,
+            default: 0
+        },
+        creditLevel: {
+            type: String,
+            default: 0
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now()
+        },
+        ageAccount: {
+            type: Number
+        },
+        userScore: {
+            type: Number,
+            default: 0
+        },
         accountToken: String,
         accountTokenExpires: Date
     }
@@ -46,6 +75,12 @@ const UserSchema = new Schema(
 //     .get(function () {
 //         return this.family_name + ', ' + this.first_name;
 //     });
+
+UserSchema.methods.caculateAge = function () {
+    const ageAccount = Date.now() - this.createdAt;
+    this.ageAccount = Math.floor(ageAccount / 1000);
+    console.log(this.ageAccount);
+}
 
 UserSchema.plugin(passportLocalMongoose, {
     usernameField: 'email', findByUsername: function (model, queryParameters) {
