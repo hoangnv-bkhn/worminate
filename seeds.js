@@ -56,8 +56,8 @@ async function seedPosts() {
         await post.reviewsScoreCaculate();
     }
     console.log('600 new posts created');
-    const user = await User.findById('61c6a785262288153020e7db');
-    user.caculateAge();
+    // const user = await User.findById('61c6a785262288153020e7db');
+    // user.caculateAge();
 }
 
 module.exports = seedPosts;

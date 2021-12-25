@@ -45,6 +45,10 @@ const PostSchema = new Schema(
             type: Schema.Types.ObjectId,
             ref: 'User'
         },
+        category: {
+            type: Schema.Types.ObjectId,
+            ref: 'Category'
+        },
         reviews: [{
             type: Schema.Types.ObjectId,
             ref: 'Review'
@@ -79,7 +83,7 @@ PostSchema.methods.reviewsScoreCaculate = async function () {
         this.reviewsScore = reviewsScoreTotal;
     }
     // const reviewsScoreTotal = Math.floor(this.reviewsScore);
-    this.save();
+    await this.save();
     // return reviewsScoreTotal;
 };
 

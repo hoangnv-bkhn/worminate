@@ -66,6 +66,8 @@ module.exports = {
                 }
             ]
         ).exec();
+        post.trendingPost += 1;
+        await post.save();
         if (!post) return next(createError(404));
         res.status(200).json({ post: post });
     },

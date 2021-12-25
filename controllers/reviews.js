@@ -20,13 +20,14 @@ module.exports = {
         post.reviews.push(review);
         // save the post
         await post.save();
-        await post.reviewsScoreCaculate();
+        post.reviewsScoreCaculate();
         res.status(200).json({});
     },
     // Reviews Update
     async reviewUpdate(req, res, next) {
         await Review.findByIdAndUpdate(req.params.review_id, req.body.review);
-        await Post.findById(req.params.id).reviewsScoreCaculate();
+        const post = await Post.findById(req.params.id).populate('reviews').exec();
+        post.reviewsScoreCaculate();
         res.status(200).json({});
     },
     // Reviews Destroy
@@ -35,7 +36,8 @@ module.exports = {
             $pull: { reviews: req.params.review_id }
         });
         await Review.findByIdAndRemove(req.params.review_id);
-        await Post.findById(req.params.id).reviewsScoreCaculate();
+        const post = await Post.findById(req.params.id).populate('reviews').exec();
+        post.reviewsScoreCaculate();
         res.status(200).json({});
     }
 }
