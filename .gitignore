@@ -1,6 +1,7 @@
 bin/ca_bundle.crt
 bin/certificate.crt
 bin/private.key
+services/test.js
 
 # Logs
 logs
