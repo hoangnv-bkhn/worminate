@@ -21,12 +21,17 @@ const User = require('../models/User');
 
 module.exports = {
     get_all_posts: async () => {
-        let posts = await Post.find({}).populate('author', 'userRank').exec();
+        let posts = await Post.find({status: true}).populate('author', 'userRank').exec();
         return posts;
     },
     get_all_users: async () => {
-        const users = await User.find({}).exec();
+        const users = await User.find({}).populate('postList', 'postScore').exec();
         return users
+    },
+    calculate_hit_counter: (arr) => {
+        arr.forEach(element => {
+            return 0;
+        })
     }
 }
 

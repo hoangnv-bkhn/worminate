@@ -6,7 +6,8 @@ const {
 
 const {
     get_all_posts,
-    get_all_users
+    get_all_users,
+    calculate_hit_counter
 } = require('./database_service');
 
 const Post = require('../models/Post');
@@ -20,7 +21,7 @@ const salesHistoryStatistics = {};
 const usedTokensStatistics = {};
 
 const reviewsScoreStatistics = {};
-const trendingPostStatistics = {};
+const hitCounterStatistics = {};
 
 function calculate_user_score(user, ageOfAccount) {
     const x1 = get_standardized_score(user.postsScore, postScoreStatistics.mean, postScoreStatistics.std);
@@ -62,7 +63,8 @@ function calculate_post_score(post) {
         x3 = 1000;
     }
 
-    const x4 = get_standardized_score(post.trendingPost, trendingPostStatistics.mean, trendingPostStatistics.std);
+    let hitCounter = calculate_hit_counter(post.hitCounter);
+    const x4 = get_standardized_score(hitCounter, hitCounterStatistics.mean, hitCounterStatistics.std);
 
     return 0.3 * x1 + 0.1 * x2 + 0.4 * x3 + 0.2 * x4;
 }
@@ -99,7 +101,8 @@ module.exports = {
                 let ageOfAccount = Math.floor(differenceInTime / (1000 * 3600 * 24));
 
                 const userScore = calculate_user_score(user, ageOfAccount)
-                console.log(userScore);
+                // console.log(userScore);
+
                 var userRank = 'D';
                 if (userScore > 900) {
                     userRank = 'S';
@@ -110,11 +113,22 @@ module.exports = {
                 } else if (500 >= userScore && userScore > 300) {
                     userRank = 'C';
                 }
+
+                let postsScore = 0;
+                if (user.postList.length > 0) {
+                    user.postList.forEach(function(post) {
+                        postsScore += post.postScore;
+                    })
+                    postsScore /= user.postList.length;
+                }
+                
+
                 bulkOp.find({ '_id': user._id }).updateOne({
                     '$set': {
                         'userScore': userScore,
                         'userRank': userRank,
-                        'ageAccount': ageOfAccount
+                        'ageAccount': ageOfAccount,
+                        'postsScore': postsScore
                     }
                 });
                 counter++;
@@ -143,9 +157,9 @@ module.exports = {
             if (element.Attribute == 'reviewsScore') {
                 reviewsScoreStatistics.mean = element.Mean;
                 reviewsScoreStatistics.std = element.Std;
-            } else if (element.Attribute == 'trendingPost') {
-                trendingPostStatistics.mean = element.Mean;
-                trendingPostStatistics.std = element.Std;
+            } else if (element.Attribute == 'hitCounter') {
+                hitCounterStatistics.mean = element.Mean;
+                hitCounterStatistics.std = element.Std;
             }
         }
 

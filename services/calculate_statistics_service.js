@@ -6,7 +6,8 @@ const {
 
 const {
     get_all_posts,
-    get_all_users
+    get_all_users,
+    calculate_hit_counter
 } = require('./database_service');
 
 const postScoreList = [];
@@ -15,7 +16,7 @@ const salesHistoryList = [];
 const usedTokensList = [];
 
 const reviewsScoreList = [];
-const trendingPostList = [];
+const hitCounterList = [];
 
 let currentTime = Date.now()
 
@@ -80,7 +81,6 @@ module.exports = {
             data.push(postScoreStatistics, ageAccountStatistics, salesHistoryStatistics, usedTokensStatistics);
             csvWriter1
                 .writeRecords(data)
-                .then(() => console.log('The user statistics file was written successfully'));
 
         });
     },
@@ -90,12 +90,13 @@ module.exports = {
         posts.then(function (posts) {
             const data = [];
             for (let index = 0; index < posts.length; index++) {
-                reviewsScoreList.push(posts[index].reviewsScore)
-                trendingPostList.push(posts[index].trendingPost)
+                reviewsScoreList.push(posts[index].reviewsScore);
+                let hits = calculate_hit_counter(posts[index].hitCounter)
+                hitCounterList.push(hits);
             }
 
             let _reviewsScoreStatistics = get_statistics_info(reviewsScoreList)
-            let _trendingPostStatistics = get_statistics_info(trendingPostList)
+            let _hitCounterStatistics = get_statistics_info(hitCounterList)
 
             const reviewsScoreStatistics = {
                 attribute: 'reviewsScore',
@@ -103,16 +104,16 @@ module.exports = {
                 std: _reviewsScoreStatistics.std
             }
 
-            const trendingPostStatistics = {
-                attribute: 'trendingPost',
-                mean: _trendingPostStatistics.mean,
-                std: _trendingPostStatistics.std
+            const hitCounterStatistics = {
+                attribute: 'hitCounter',
+                mean: _hitCounterStatistics.mean,
+                std: _hitCounterStatistics.std
             }
 
-            data.push(reviewsScoreStatistics, trendingPostStatistics);
+            data.push(reviewsScoreStatistics, hitCounterStatistics);
             csvWriter2
                 .writeRecords(data)
-                .then(() => console.log('The post statistics file was written successfully'));
+                // .then(() => console.log('The post statistics file was written successfully'));
         })
     }
 }
