@@ -35,6 +35,12 @@ const UserSchema = new Schema(
                 token: String
             }
         ],
+        postList: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: 'Post'
+            }
+        ],
         postsScore: {
             type: Number,
             default: 0

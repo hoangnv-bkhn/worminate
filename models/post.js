@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const mongoosePaginate = require('mongoose-paginate');
+const Review = require('./Review');
 
 const pointSchema = new mongoose.Schema(
     {
@@ -66,9 +67,15 @@ const PostSchema = new Schema(
             enum: [0, 1, 2, 3],
             default: 0
         },
-        trendingPost: {
-            type: Number,
-            default: 0
+        count: [
+            {
+                type: Number,
+                default: 0
+            }
+        ],
+        status: {
+            type: Boolean,
+            default: true
         }
     }
 );
@@ -88,13 +95,13 @@ PostSchema.methods.reviewsScoreCaculate = async function () {
     // return reviewsScoreTotal;
 };
 
-PostSchema.pre('remove', async function () {
-    await Review.remove({
+PostSchema.methods.reviewsDelete = async function () {
+    await Review.deleteMany({
         _id: {
             $in: this.reviews
         }
     })
-});
+};
 
 PostSchema.plugin(mongoosePaginate);
 
