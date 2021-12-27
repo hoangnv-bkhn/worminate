@@ -1,4 +1,5 @@
 const Post = require('../models/Post');
+const Category = require('../models/Category');
 const createError = require('http-errors');
 const mbxGeocoding = require('@mapbox/mapbox-sdk/services/geocoding');
 const geocodingClient = mbxGeocoding({ accessToken: process.env.MAPBOX_ACCESS_TOKEN });
@@ -28,14 +29,21 @@ module.exports = {
         }
         res.status(200).json({ posts: posts });
     },
+    //GET /api/posts/new
+    getCategory: async (req, res, next) => {
+        const category = await Category.find({}).exec();
+        res.status(200).json({ category: category });
+    },
     //POST /api/posts
     postCreate: async (req, res, next) => {
         req.body.post.images = [];
-        for (const file of req.files) {
-            req.body.post.images.push({
-                path: file.path,
-                filename: file.filename
-            });
+        if (req.files) {
+            for (const file of req.files) {
+                req.body.post.images.push({
+                    path: file.path,
+                    filename: file.filename
+                });
+            }
         }
         let response = await geocodingClient.forwardGeocode({
             query: req.body.post.location,
@@ -44,8 +52,11 @@ module.exports = {
         req.body.post.geometry = response.body.features[0].geometry;
         req.body.post.author = req.user._id;
         const post = new Post(req.body.post);
+        const user = req.user;
+        user.postList.push(post._id);
         post.properties.description = `<strong><a href="/posts/${post._id}">${post.title}</a></strong><p>${post.location}</p><p>${post.description.substring(0, 20)}...</p>`;
         await post.save();
+        await user.save();
         res.status(200).json({ post: post });
     },
     //GET /posts/:id
@@ -63,11 +74,15 @@ module.exports = {
                 {
                     path: 'author',
                     select: 'fullName'
+                },
+                {
+                    path: 'category',
+                    select: 'name'
                 }
             ]
         ).exec();
-        post.trendingPost += 1;
-        await post.save();
+        // post.trendingPost += 1;
+        // await post.save();
         if (!post) return next(createError(404));
         res.status(200).json({ post: post });
     },
@@ -126,9 +141,13 @@ module.exports = {
     postDestroy: async (req, res, next) => {
         const { post } = res.locals;
         for (const image of post.images) {
-            await cloudinary.uploader.destroy(image.filename);
+            deleteImageCloudinary(image.filename);
         }
-        await post.remove();
+        const user = req.user;
+        user.postList = user.postList.filter(p => p.toString() != post._id.toString());
+        post.reviewsDelete();
+        await Post.deleteOne({ _id: post._id });
+        await user.save();
         res.status(200).json({});
     },
     //GET /posts/:id/favorite

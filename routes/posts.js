@@ -7,6 +7,7 @@ const upload = multer({ storage: storage });
 
 const {
     postIndex,
+    getCategory,
     postCreate,
     postShow,
     postUpdate,
@@ -36,6 +37,9 @@ router.delete('*', verifyUser, errorHandler);
 
 //GET /api/posts
 router.get('/', asyncErrorHandler(searchAndFilterPosts), asyncErrorHandler(postIndex));
+
+//GET /api/posts/new
+router.get('/new', asyncErrorHandler(getCategory));
 
 //POST /api/posts
 router.post('/', upload.array('images', 4), asyncErrorHandler(postCreate));
