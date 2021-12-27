@@ -67,12 +67,11 @@ const PostSchema = new Schema(
             enum: [0, 1, 2, 3],
             default: 0
         },
-        count: [
-            {
-                type: Number,
-                default: 0
-            }
-        ],
+        hitCounter: {
+            type: Map,
+            of: String,
+            default: {}
+        },
         status: {
             type: Boolean,
             default: true
