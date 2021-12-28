@@ -59,9 +59,23 @@ const UserSchema = new Schema(
             type: Number,
             default: 0
         },
-        creditLevel: {
+        reported: {
             type: Number,
             default: 0
+        },
+        manageFollowers: {
+            follow: [
+                {
+                    type: Schema.Types.ObjectId,
+                    ref: 'User'
+                }
+            ],
+            followed: [
+                {
+                    type: Schema.Types.ObjectId,
+                    ref: 'User'
+                }
+            ]
         },
         createdAt: {
             type: Date,

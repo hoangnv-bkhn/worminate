@@ -67,6 +67,9 @@ const PostSchema = new Schema(
             enum: [0, 1, 2, 3],
             default: 0
         },
+        expirationDate: {
+            type: Date
+        },
         hitCounter: {
             type: Map,
             of: String,

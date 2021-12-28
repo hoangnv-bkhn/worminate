@@ -87,6 +87,10 @@ module.exports = {
         if (post.hitCounter.get(date.toUTCString())) {
             count = parseInt(post.hitCounter.get(date.toUTCString()), 10) + 1;
         }
+        if (post.hitCounter.size > 29) {
+            const iterator = post.hitCounter.keys();
+            post.hitCounter.delete(iterator.next().value);
+        }
         post.hitCounter.set(date.toUTCString(), count);
         await post.save();
         if (!post) return next(createError(404));

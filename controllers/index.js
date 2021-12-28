@@ -162,5 +162,38 @@ module.exports = {
         };
         await sgMail.send(msg);
         res.status(200).json({});
+    },
+    //POST /api/user/followers
+    postFollowers: async (req, res, next) => {
+        const { userId } = req.body;
+        let user = req.user;
+        let check = 0;
+        user.manageFollowers.follow.map(item => {
+            if (userId == item._id.toString()) {
+                check++;
+            }
+        });
+        if (check > 0) {
+            return res.status(409).json({});
+        } else {
+            user.manageFollowers.follow.push(userId);
+            await user.save();
+            delete user;
+            user = await User.findById(userId);
+            user.manageFollowers.followed.push(req.user._id);
+            await user.save();
+        }
+        res.status(200).json({});
+    },
+    //DELETE /api/user/followers
+    deleteFollowers: async (req, res, next) => {
+        const { userId } = req.body;
+        let user = req.user;
+        user.manageFollowers.follow = user.manageFollowers.follow.filter(item => item._id.toString() != userId);
+        await user.save();
+        user = await User.findById(userId);
+        user.manageFollowers.followed = user.manageFollowers.followed.filter(item => item._id.toString() != req.user._id.toString());
+        await user.save();
+        res.status(200).json({});
     }
 }
