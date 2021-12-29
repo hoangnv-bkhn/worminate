@@ -62,7 +62,7 @@ const PostSchema = new Schema(
             type: Number,
             default: 0
         },
-        bonusLevel: {
+        promotionalPlan: {
             type: Number,
             enum: [0, 1, 2, 3],
             default: 0
@@ -78,6 +78,10 @@ const PostSchema = new Schema(
         status: {
             type: Boolean,
             default: true
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now()
         }
     }
 );

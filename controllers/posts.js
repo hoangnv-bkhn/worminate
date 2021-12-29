@@ -8,6 +8,11 @@ const {
     deleteImageCloudinary
 } = require('../middlewares');
 
+time_now = () => {
+    const timeNow = new Date(Date.now());
+    return new Date(timeNow.getFullYear() + '/' + (timeNow.getMonth() + 1) + '/' + timeNow.getDate());
+}
+
 module.exports = {
     //GET /api/posts
     postIndex: async (req, res, next) => {
@@ -55,6 +60,12 @@ module.exports = {
         const user = req.user;
         user.postList.push(post._id);
         post.properties.description = `<strong><a href="/posts/${post._id}">${post.title}</a></strong><p>${post.location}</p><p>${post.description.substring(0, 20)}...</p>`;
+        const date = time_now();
+        date.setDate(date.getDate() - 29);
+        for (let i = 0; i < 30; i++) {
+            post.hitCounter.set(date.toUTCString(), '0');
+            date.setDate(date.getDate() + 1);
+        }
         await post.save();
         await user.save();
         res.status(200).json({ post: post });
@@ -81,17 +92,30 @@ module.exports = {
                 }
             ]
         ).exec();
-        const timeNow = new Date(Date.now());
-        const date = new Date(timeNow.getFullYear() + '/' + timeNow.getMonth() + '/' + timeNow.getDate());
+        const date = time_now();
+        const dateOld = new Date(date - 29 * 1000 * 60 * 60 * 24);
         let count = 1;
-        if (post.hitCounter.get(date.toUTCString())) {
+        if (post.hitCounter.has(date.toUTCString())) {
             count = parseInt(post.hitCounter.get(date.toUTCString()), 10) + 1;
         }
-        if (post.hitCounter.size > 29) {
-            const iterator = post.hitCounter.keys();
-            post.hitCounter.delete(iterator.next().value);
-        }
         post.hitCounter.set(date.toUTCString(), count);
+        for (let key of post.hitCounter.keys()) {
+            if (new Date(key).getTime() < dateOld.getTime()) {
+                post.hitCounter.delete(key);
+            }
+        }
+        const map = new Map([]);
+        for (let i = 0; i < 30; i++) {
+            if (post.hitCounter.has(dateOld.toUTCString())) {
+                count = post.hitCounter.get(dateOld.toUTCString());
+                map.set(dateOld.toUTCString(), count);
+            } else {
+                map.set(dateOld.toUTCString(), '0');
+            }
+            dateOld.setDate(dateOld.getDate() + 1);
+        }
+        post.hitCounter.clear();
+        post.hitCounter = map;
         await post.save();
         if (!post) return next(createError(404));
         res.status(200).json({ post: post });
