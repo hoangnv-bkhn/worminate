@@ -131,6 +131,35 @@ async function connectToWallet(ethereumButton) {
     $('#intro-price').show();
   });
 
+  const tokenAddress = '0x6dcb6b24459df0f197203c1a7a9390cb39a6f718';
+  const tokenSymbol = 'WOR';
+  const tokenDecimals = 0;
+  const tokenImage = 'https://res.cloudinary.com/dzxazbuwe/image/upload/v1633839287/worminate/r84og4jih7evxa5uawr1.png';
+
+  try {
+    // wasAdded is a boolean. Like any RPC method, an error may be thrown.
+    const wasAdded = await ethereum.request({
+      method: 'wallet_watchAsset',
+      params: {
+        type: 'ERC20', // Initially only supports ERC20, but eventually more!
+        options: {
+          address: tokenAddress, // The address that the token is at.
+          symbol: tokenSymbol, // A ticker symbol or shorthand, up to 5 chars.
+          decimals: tokenDecimals, // The number of decimals in the token
+          image: tokenImage, // A string url of the token logo
+        },
+      },
+    });
+
+    if (wasAdded) {
+      console.log('Thanks for your interest!');
+    } else {
+      console.log('Your loss!');
+    }
+  } catch (error) {
+    console.log(error);
+  }
+
 };
 
 async function connectToAnotherAccount(ethereumButton) {
@@ -679,7 +708,7 @@ ICO = {
     ICO.contracts.worTokenContract = new web3.eth.Contract(ICO.worTokenContractAbi, ICO.worTokenContractAddr);
 
     ICO.contracts.worTokenContract.methods.getOwner().call().then(function (owner) {
-      console.log("Admin: "+owner);
+      console.log("Admin: " + owner);
       ICO.admin = owner;
     })
 
