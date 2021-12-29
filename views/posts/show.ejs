@@ -39,11 +39,14 @@
                 <input type="submit" value="Delete">
             </form>
         </div>
-        <div>
-            <form action="/posts/<%= post.id %>/favoritesProduct?_method=POST" method="POST">
-                <input type="submit" value="Add Favorite">
-            </form>
-        </div>
+        
+        <% } %>
+        <% if (currentUser && !post.author.equals(currentUser._id)) { %>
+            <div>
+                <form action="/posts/<%= post.id %>/favoritesProduct?_method=POST" method="POST">
+                    <input type="submit" value="Add Favorite">
+                </form>
+            </div>
         <% } %>
 
             <% if (currentUser) { %>

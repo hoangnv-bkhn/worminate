@@ -26,7 +26,7 @@
           <h3>Token price is <span class="token-price"></span> Ether.</h3>
         </p> -->
         <!-- <button id="buyToken">Buy Token</button> -->
-          <br />
+        <br />
       </div>
       <div id="loader" style="display: none;">
         <p class="text-center">Loading...</p>
@@ -35,9 +35,9 @@
       <div id="content" class="text-center">
         <p>
         <h2>Introducing "Worminate" (WOR)!</h2>
-        <h3>Token price is <span class="token-price"></span> Ether.</h3>
-        <h4>Token price is <span class="token-price"></span> Ether. You currently have <span
-            class="dapp-balance"></span>&nbsp;ACP.</h4>
+        <h3 id="intro-price">Token price is <span class="token-price"></span> Ether.</h3>
+        <h4 id="after-connected" style="display: none;">Token price is <span class="token-price"></span> Ether. You
+          currently have <span class="wor-balance"></span>&nbsp;WOR.</h4>
         </p>
         <br />
         <form onsubmit="ICO.buyTokens(event); return false;" role="form" name="buyForm">
@@ -60,6 +60,22 @@
         <hr />
         <p id="accountAddress"></p>
       </div>
+      <div id="listBuyer">
+        <table id="tableList">
+          <tr id="tableHeader">
+            <td>Address</td>
+            <td>Quantity</td>
+          </tr>
+        </table>
+      </div>
+      <hr />
+      <br />
+      <h2 class="text-center" style="margin:30px 0 30px 0;">POST PROMOTIONAL PLAN</h2>
+      <div class="text-center" style="float:left;">
+        <button type="button" style="margin:5px 10px 50px 10px;width:150px" class="btn btn-primary basic-plan">Basic</button>
+        <button type="button" style="margin:5px 10px 50px 10px;width:150px" class="btn btn-primary plus-plan">Plus</button>
+        <button type="button" style="margin:5px 10px 50px 10px;width:150px" class="btn btn-primary visionary-plan">Visionary</button>
+      </div>
     </div>
   </div>
 
@@ -69,7 +85,8 @@
     var posts = { features: <%- JSON.stringify(posts) %> };
   </script>
   <script src="/javascripts/allPostsClusterMap.js"></script>
-  <script src="./scripts/web3.js"></script>
+  <!-- <script src="./scripts/web3.js"></script> -->
   <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+  <script src="https://unpkg.com/@metamask/detect-provider/dist/detect-provider.min.js"></script>
   <!-- <script src="https://cdn.jsdelivr.net/npm/truffle-contract@4.0.31/dist/truffle-contract.min.js"></script> -->
   <script src="/javascripts/ico.js"></script>

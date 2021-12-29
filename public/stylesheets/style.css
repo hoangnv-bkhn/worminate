@@ -53,3 +53,24 @@ a {
   background: #dd4b39;
   color: white;
 }
+
+#listBuyer {
+  background-color: #3B5998;
+}
+
+#tableList {
+  width: 90%;
+  color: #dd4b39;
+}
+
+#tableHeader td{
+  text-align: center;
+  padding: 10px;
+  margin: 5px 0 5px 0;
+}
+
+.rowTable {
+  text-align: center;
+  color: #ffcc66;
+  padding: 5px;
+}
