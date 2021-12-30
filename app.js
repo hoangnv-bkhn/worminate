@@ -9,6 +9,7 @@ const helmet = require('helmet');
 const methodOverride = require('method-override');
 const rateLimit = require("express-rate-limit");
 const cors = require('cors');
+const cron = require('node-cron');
 
 const indexRouter = require('./routes/index');
 const userRouter = require('./routes/user');
@@ -45,6 +46,28 @@ require('./models/Review');
 // view engine setup
 // app.set('views', path.join(__dirname, 'views'));
 // app.set('view engine', 'ejs');
+
+const {
+  calculate_user_statistics,
+  calculate_post_statistics
+} = require('./services/calculate_statistics_service');
+
+const {
+  update_user_score,
+  update_post_score
+} = require('./services/calculate_score_service');
+
+cron.schedule('0 2 */3 * *', function () {
+  calculate_user_statistics();
+  calculate_post_statistics();
+  console.log('Calculated statistics information on ' + new Date());
+});
+
+cron.schedule('0 3 * * *', function () {
+  update_user_score();
+  update_post_score();
+  console.log('Successfully updated system data on ' + new Date())
+});
 
 app.use(logger('dev'));
 app.use(express.json());
