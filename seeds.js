@@ -10,7 +10,7 @@ function random_item(items) {
 
 }
 
-var userId = ['61cd353732361a43ee6175db', '61cd353732361a43ee6175dd', '61cd353732361a43ee6175df', '61cd353732361a43ee6175e1', '61cd353732361a43ee6175e3', '61cd353732361a43ee6175e5', '61cd353732361a43ee6175e7', '61cd353732361a43ee6175e9', '61cd353732361a43ee6175eb', '61cd353832361a43ee6175ed'];
+var userId = ['61cd5101f47d709e6303c0b7', '61cd5102f47d709e6303c0bb', '61cd5102f47d709e6303c0bf', '61cd5103f47d709e6303c0c3', '61cd5103f47d709e6303c0c7', '61cd5104f47d709e6303c0cb', '61cd5104f47d709e6303c0cf', '61cd5104f47d709e6303c0d3', '61cd5105f47d709e6303c0d7', '61cd5105f47d709e6303c0db'];
 
 var category = ['61c72f6953ea1a64eda2e34a', '61c72f8353ea1a64eda2e34e', '61c72fa153ea1a64eda2e352', '61c9d6f0520edfa1e5dd9c88'];
 
@@ -47,7 +47,6 @@ async function seedPosts() {
     //     const userData = {
     //         fullName,
     //         email,
-    //         password: 123456,
     //         admin: random_item(bool),
     //         active: true,
     //         image: {
@@ -60,7 +59,7 @@ async function seedPosts() {
     //         reported: random5,
     //         createdAt: new Date(Date.now() - random1000 * 24 * 60 * 60 * 1000),
     //     }
-    //     let user = new User(userData);
+    //     const user = await User.register(new User(userData), '123456');
     //     await user.save();
     // }
     // await Post.deleteMany({});
@@ -108,6 +107,7 @@ async function seedPosts() {
     //     post.reviews.push(review);
     //     post.properties.description = `<strong><a href="/posts/${post._id}">${title}</a></strong><p>${post.location}</p><p>${description.substring(0, 20)}...</p>`;
     //     const date = time_now();
+    //     date.setUTCHours(0, 0, 0, 0);
     //     date.setDate(date.getDate() - 29);
     //     for (let i = 0; i < 30; i++) {
     //         post.hitCounter.set(date.toUTCString(), Math.floor(Math.random() * 1000).toString());
