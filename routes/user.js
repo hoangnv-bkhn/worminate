@@ -8,7 +8,9 @@ const upload = multer({ storage: storage });
 const {
     postRegister,
     getProfile,
-    updateProfile
+    updateProfile,
+    postFollowers,
+    deleteFollowers
 } = require('../controllers');
 
 const {
@@ -41,6 +43,12 @@ router.get('/', isAdmin, asyncErrorHandler(getUsers));
 
 //POST /api/user
 router.post('/', upload.single('image'), validateBody, asyncErrorHandler(postRegister));
+
+//POST /api/user/followers
+router.post('/followers', verifyUser, errorHandler, asyncErrorHandler(postFollowers));
+
+//DELETE /api/user/followers
+router.delete('/followers', asyncErrorHandler(deleteFollowers));
 
 //GET /api/user/{userId}
 router.get('/:id', validateParams, asyncErrorHandler(getProfile));
