@@ -57,13 +57,13 @@ const {
   update_post_score
 } = require('./services/calculate_score_service');
 
-cron.schedule('*/3 * * * *', function () {
+cron.schedule('0 2 */3 * *', function () {
   calculate_user_statistics();
   calculate_post_statistics();
   console.log('Calculated statistics information on ' + new Date());
 });
 
-cron.schedule('*/1 * * * *', function () {
+cron.schedule('0 3 * * *', function () {
   update_user_score();
   update_post_score();
   console.log('Successfully updated system data on ' + new Date())

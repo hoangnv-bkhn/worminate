@@ -13,6 +13,7 @@ const {
 const postScoreList = [];
 const ageAccountList = [];
 const salesHistoryList = [];
+const creditLevelList = [];
 const usedTokensList = [];
 
 const reviewsScoreList = [];
@@ -42,79 +43,93 @@ const csvWriter2 = createCsvWriter({
 module.exports = {
 
     calculate_user_statistics: async () => {
-        get_all_users().then(function (users) {
-            const data = [];
-            for (let index = 0; index < users.length; index++) {
-                postScoreList.push(users[index].postsScore);
-                let differenceInTime = currentTime - users[index].createdAt;
-                ageAccountList.push(Math.floor(differenceInTime / (1000 * 3600 * 24)));
-                salesHistoryList.push(users[index].salesHistory);
-                usedTokensList.push(users[index].usedTokens);
-            }
+        const users = await get_all_users();
 
-            let _postScoreStatistics = get_statistics_info(postScoreList)
-            let _ageAccountStatistics = get_statistics_info(ageAccountList)
-            let _salesHistoryStatistics = get_statistics_info(salesHistoryList)
-            let _usedTokensStatistics = get_statistics_info(usedTokensList)
+        const data = [];
+        for (let index = 0; index < users.length; index++) {
 
-            const postScoreStatistics = {
-                attribute: 'postScore',
-                mean: _postScoreStatistics.mean,
-                std: _postScoreStatistics.std
-            }
-            const ageAccountStatistics = {
-                attribute: 'ageAccount',
-                mean: _ageAccountStatistics.mean,
-                std: _ageAccountStatistics.std
-            }
-            const salesHistoryStatistics = {
-                attribute: 'salesHistory',
-                mean: _salesHistoryStatistics.mean,
-                std: _salesHistoryStatistics.std
-            }
-            const usedTokensStatistics = {
-                attribute: 'usedTokens',
-                mean: _usedTokensStatistics.mean,
-                std: _usedTokensStatistics.std
-            }
+            postScoreList.push(users[index].postsScore);
 
-            data.push(postScoreStatistics, ageAccountStatistics, salesHistoryStatistics, usedTokensStatistics);
-            csvWriter1
-                .writeRecords(data)
+            let differenceInTime = currentTime - users[index].createdAt;
+            ageAccountList.push(Math.floor(differenceInTime / (1000 * 3600 * 24)));
 
-        });
+            salesHistoryList.push(users[index].salesHistory);
+
+            let followBy = users[index].manageFollowers.followBy.length;
+            let reported = users[index].reported;
+            creditLevelList.push(followBy - reported);
+
+            usedTokensList.push(users[index].usedTokens);
+        }
+
+        let _postScoreStatistics = get_statistics_info(postScoreList)
+        let _ageAccountStatistics = get_statistics_info(ageAccountList)
+        let _salesHistoryStatistics = get_statistics_info(salesHistoryList)
+        let _creditLevelStatistics = get_statistics_info(creditLevelList)
+        let _usedTokensStatistics = get_statistics_info(usedTokensList)
+
+        const postScoreStatistics = {
+            attribute: 'postsScore',
+            mean: _postScoreStatistics.mean,
+            std: _postScoreStatistics.std
+        }
+        const ageAccountStatistics = {
+            attribute: 'ageAccount',
+            mean: _ageAccountStatistics.mean,
+            std: _ageAccountStatistics.std
+        }
+        const salesHistoryStatistics = {
+            attribute: 'salesHistory',
+            mean: _salesHistoryStatistics.mean,
+            std: _salesHistoryStatistics.std
+        }
+        const creditLevelStatistics = {
+            attribute: 'creditLevel',
+            mean: _creditLevelStatistics.mean,
+            std: _creditLevelStatistics.std
+        }
+        const usedTokensStatistics = {
+            attribute: 'usedTokens',
+            mean: _usedTokensStatistics.mean,
+            std: _usedTokensStatistics.std
+        }
+
+        data.push(postScoreStatistics, ageAccountStatistics, salesHistoryStatistics,
+            creditLevelStatistics, usedTokensStatistics);
+        csvWriter1
+            .writeRecords(data)
+
     },
 
     calculate_post_statistics: async () => {
-        let posts = get_all_posts()
-        posts.then(function (posts) {
-            const data = [];
-            for (let index = 0; index < posts.length; index++) {
-                reviewsScoreList.push(posts[index].reviewsScore);
-                let hits = calculate_hit_counter(posts[index].hitCounter)
-                hitCounterList.push(hits);
-            }
+        const posts = await get_all_posts();
+        const data = [];
+        for (let index = 0; index < posts.length; index++) {
+            reviewsScoreList.push(posts[index].reviewsScore);
+            let hits = calculate_hit_counter(posts[index].hitCounter)
+            hitCounterList.push(hits);
+        }
 
-            let _reviewsScoreStatistics = get_statistics_info(reviewsScoreList)
-            let _hitCounterStatistics = get_statistics_info(hitCounterList)
+        let _reviewsScoreStatistics = get_statistics_info(reviewsScoreList)
+        let _hitCounterStatistics = get_statistics_info(hitCounterList)
 
-            const reviewsScoreStatistics = {
-                attribute: 'reviewsScore',
-                mean: _reviewsScoreStatistics.mean,
-                std: _reviewsScoreStatistics.std
-            }
+        const reviewsScoreStatistics = {
+            attribute: 'reviewsScore',
+            mean: _reviewsScoreStatistics.mean,
+            std: _reviewsScoreStatistics.std
+        }
 
-            const hitCounterStatistics = {
-                attribute: 'hitCounter',
-                mean: _hitCounterStatistics.mean,
-                std: _hitCounterStatistics.std
-            }
+        const hitCounterStatistics = {
+            attribute: 'hitCounter',
+            mean: _hitCounterStatistics.mean,
+            std: _hitCounterStatistics.std
+        }
 
-            data.push(reviewsScoreStatistics, hitCounterStatistics);
-            csvWriter2
-                .writeRecords(data)
-                // .then(() => console.log('The post statistics file was written successfully'));
-        })
+        data.push(reviewsScoreStatistics, hitCounterStatistics);
+        csvWriter2
+            .writeRecords(data)
+        // .then(() => console.log('The post statistics file was written successfully'));
+
     }
 }
 

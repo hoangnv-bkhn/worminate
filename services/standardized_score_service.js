@@ -13,6 +13,9 @@ module.exports = {
         }
         let z_score = (parseFloat(value) - parseFloat(mean)) / parseFloat(std);
         let t_score = z_score * 150 + 500;
+        if (t_score < 0){
+            return 0;
+        }
         if (t_score > 1000){
             return 1000;
         }

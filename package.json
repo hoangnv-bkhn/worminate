@@ -30,7 +30,7 @@
     "http-errors": "~1.6.3",
     "joi": "^17.5.0",
     "jsonwebtoken": "^8.5.1",
-    "mathjs": "^10.0.0",
+    "mathjs": "^10.0.2",
     "method-override": "^3.0.0",
     "mongoose": "^6.0.14",
     "mongoose-paginate": "^5.0.3",
