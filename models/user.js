@@ -70,7 +70,7 @@ const UserSchema = new Schema(
                     ref: 'User'
                 }
             ],
-            followed: [
+            followBy: [
                 {
                     type: Schema.Types.ObjectId,
                     ref: 'User'
