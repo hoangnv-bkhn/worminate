@@ -48,10 +48,6 @@ module.exports = {
     },
     //POST /api/user
     postRegister: async (req, res, next) => {
-        if (req.file) {
-            const { path, filename } = req.file;
-            req.body.image = { path, filename };
-        }
         const user = await User.register(new User(req.body), req.body.password);
         activeAccount(user.email, req);
         res.status(200).json({});
@@ -78,15 +74,33 @@ module.exports = {
     },
     //GET /api/user/{userId}
     getProfile: async (req, res, next) => {
-        if (req.user.admin) {
-            let { id } = req.params;
-            let user = await User.findOne({ _id: id });
-            let posts = await Post.find().where('author').equals(id).limit(10).exec();
-            res.status(200).json({ user: user, posts: posts })
-        } else {
-            let posts = await Post.find().where('author').equals(req.user._id).limit(10).exec();
-            res.status(200).json({ posts: posts });
-        }
+        let { id } = req.params;
+        let user = await User.findOne({ _id: id }).populate([
+            {
+                path: 'postList',
+                select: ['title', 'description', 'price']
+            },
+            {
+                path: 'favoritesProduct',
+                select: ['title', 'description', 'price']
+            },
+            {
+                path: 'manageFollowers',
+                options: { sort: { '_id': -1 } },
+                populate: [
+                    {
+                        path: 'follow',
+                        select: 'fullName'
+                    },
+                    {
+                        path: 'followBy',
+                        select: 'fullName'
+                    }
+                ]
+            }
+        ]
+        ).exec();
+        res.status(200).json({ user: user });
     },
     //PUT /api/user
     updateProfile: async (req, res, next) => {
@@ -95,12 +109,12 @@ module.exports = {
         if (fullName) {
             user.fullName = fullName;
         }
-        if (req.file) {
+        if (req.body.image) {
             if (user.image.filename) {
                 deleteImageCloudinary(user.image.filename);
             }
-            const { path, filename } = req.file;
-            user.image = { path, filename };
+            // const { path, filename } = req.file;
+            user.image = req.body.image;
         }
         if (newPassword) await user.setPassword(newPassword);
         if (fullName || req.file || newPassword) await user.save();

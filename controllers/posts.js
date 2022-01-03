@@ -41,15 +41,15 @@ module.exports = {
     },
     //POST /api/posts
     postCreate: async (req, res, next) => {
-        req.body.post.images = [];
-        if (req.files) {
-            for (const file of req.files) {
-                req.body.post.images.push({
-                    path: file.path,
-                    filename: file.filename
-                });
-            }
-        }
+        // req.body.post.images = [];
+        // if (req.files) {
+        //     for (const file of req.files) {
+        //         req.body.post.images.push({
+        //             path: file.path,
+        //             filename: file.filename
+        //         });
+        //     }
+        // }
         let response = await geocodingClient.forwardGeocode({
             query: req.body.post.location,
             limit: 1
@@ -140,16 +140,16 @@ module.exports = {
             }
         }
 
-        if (req.files) {
-            // upload images
-            for (const file of req.files) {
-                // add images to post.images array
-                post.images.push({
-                    path: file.path,
-                    filename: file.filename
-                });
-            }
-        }
+        // if (req.files) {
+        //     // upload images
+        //     for (const file of req.files) {
+        //         // add images to post.images array
+        //         post.images.push({
+        //             path: file.path,
+        //             filename: file.filename
+        //         });
+        //     }
+        // }
 
         // check if location was updated
         if (req.body.post.location !== post.location) {

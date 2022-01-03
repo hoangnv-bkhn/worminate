@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 
-const { storage } = require('../cloudinary');
-const multer = require('multer');
-const upload = multer({ storage: storage });
+// const { storage } = require('../cloudinary');
+// const multer = require('multer');
+// const upload = multer({ storage: storage });
 
 const {
     postIndex,
@@ -42,13 +42,13 @@ router.get('/', asyncErrorHandler(searchAndFilterPosts), asyncErrorHandler(postI
 router.get('/new', asyncErrorHandler(getCategory));
 
 //POST /api/posts
-router.post('/', upload.array('images', 4), asyncErrorHandler(postCreate));
+router.post('/', asyncErrorHandler(postCreate));
 
 //GET /api/posts/{postId}
 router.get('/:id', validateParams, asyncErrorHandler(postShow));
 
 //PUT /api/posts/{postId}
-router.put('/:id', validateParams, asyncErrorHandler(isAuthor), upload.array('images', 4), asyncErrorHandler(postUpdate));
+router.put('/:id', validateParams, asyncErrorHandler(isAuthor), asyncErrorHandler(postUpdate));
 
 //DELETE /api/posts/{postId}
 router.delete('/:id', validateParams, asyncErrorHandler(isAuthor), asyncErrorHandler(postDestroy));

@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Post = require('../models/Post');
 const Review = require('../models/Review');
+const Category = require('../models/Category');
 const createError = require('http-errors');
 const { cloudinary } = require('../cloudinary');
 
@@ -15,11 +16,13 @@ module.exports = {
             await fn(req, res, next);
         } catch (err) {
             try {
-                if (req.file) {
-                    await cloudinary.uploader.destroy(req.file.filename);
-                } else if (req.files) {
-                    for (const file of req.files) {
-                        await cloudinary.uploader.destroy(file.filename);
+                if (req.body.image.filename) {
+                    await cloudinary.uploader.destroy(req.body.image.filename);
+                } else if (req.body.images) {
+                    for (const file of req.body.images) {
+                        if (file.filename) {
+                            await cloudinary.uploader.destroy(file.filename);
+                        }
                     }
                 }
             } catch (err) {
@@ -35,7 +38,9 @@ module.exports = {
         const { password } = req.body;
         const { user, error } = await User.authenticate()(req.user.email, password);
         if (!user && error) {
-            await cloudinary.uploader.destroy(req.file.filename);
+            if (req.body.image.filename) {
+                await cloudinary.uploader.destroy(req.body.image.filename);
+            }
             return next(createError(404));
         }
         else next();
@@ -63,7 +68,7 @@ module.exports = {
         const queryKeys = Object.keys(req.query);
         if (queryKeys.length) {
             const dbQueries = [];
-            let { search, price, avgRating, location, distance } = req.query;
+            let { search, price, avgRating, location, distance, category } = req.query;
             if (search) {
                 search = new RegExp(escapeRegExp(search), 'gi');
                 dbQueries.push({
@@ -118,6 +123,13 @@ module.exports = {
 
             if (avgRating) {
                 dbQueries.push({ avgRating: { $in: avgRating } });
+            }
+
+            if (category) {
+                let category_schema = await Category.findOne({ name: category }).exec();
+                if (category_schema) {
+                    dbQueries.push({ category: category_schema._id });
+                }
             }
 
             res.locals.dbQuery = dbQueries.length ? { $and: dbQueries } : {};

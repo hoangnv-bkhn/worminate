@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 
-const { storage } = require('../cloudinary');
-const multer = require('multer');
-const upload = multer({ storage: storage });
+// const { storage } = require('../cloudinary');
+// const multer = require('multer');
+// const upload = multer({ storage: storage });
 
 const {
     postRegister,
@@ -42,7 +42,7 @@ router.delete('*', verifyUser, errorHandler);
 router.get('/', isAdmin, asyncErrorHandler(getUsers));
 
 //POST /api/user
-router.post('/', upload.single('image'), validateBody, asyncErrorHandler(postRegister));
+router.post('/', validateBody, asyncErrorHandler(postRegister));
 
 //POST /api/user/followers
 router.post('/followers', verifyUser, errorHandler, asyncErrorHandler(postFollowers));
@@ -54,7 +54,7 @@ router.delete('/followers', asyncErrorHandler(deleteFollowers));
 router.get('/:id', validateParams, asyncErrorHandler(getProfile));
 
 //PUT /api/user/{userId}
-router.put('/:id', validateParams, upload.single('image'), validateBody, asyncErrorHandler(isValidPassword), asyncErrorHandler(updateProfile));
+router.put('/:id', validateParams, validateBody, asyncErrorHandler(isValidPassword), asyncErrorHandler(updateProfile));
 
 //DELETE /api/user/{userId}
 router.delete('/:id', validateParams);
