@@ -53,7 +53,10 @@ router.put('/:id', validateParams, asyncErrorHandler(isAuthor), asyncErrorHandle
 //DELETE /api/posts/{postId}
 router.delete('/:id', validateParams, asyncErrorHandler(isAuthor), asyncErrorHandler(postDestroy));
 
-//GET /api/posts/{postId}/favorite
-router.get('/:id/favorite', verifyUser, errorHandler, validateParams, asyncErrorHandler(postFavorite));
+//POST /api/posts/favorite
+router.post('/favorite', asyncErrorHandler(postFavorite));
+
+//POST /api/posts/sale
+router.post('/sale', asyncErrorHandler(isAuthor), asyncErrorHandler(postUpdate));
 
 module.exports = router;

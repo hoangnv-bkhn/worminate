@@ -4,6 +4,8 @@ const Review = require('../models/Review');
 const Category = require('../models/Category');
 const createError = require('http-errors');
 const { cloudinary } = require('../cloudinary');
+const mbxGeocoding = require('@mapbox/mapbox-sdk/services/geocoding');
+const geocodingClient = mbxGeocoding({ accessToken: process.env.MAPBOX_ACCESS_TOKEN });
 
 escapeRegExp = (str) => {
     // $& means the whole matched string
@@ -15,6 +17,7 @@ module.exports = {
         try {
             await fn(req, res, next);
         } catch (err) {
+            console.error(err);
             try {
                 if (req.body.image.filename) {
                     await cloudinary.uploader.destroy(req.body.image.filename);
@@ -68,7 +71,7 @@ module.exports = {
         const queryKeys = Object.keys(req.query);
         if (queryKeys.length) {
             const dbQueries = [];
-            let { search, price, avgRating, location, distance, category } = req.query;
+            let { search, price, avgRating, location, distance, category, sortby } = req.query;
             if (search) {
                 search = new RegExp(escapeRegExp(search), 'gi');
                 dbQueries.push({
@@ -98,15 +101,10 @@ module.exports = {
                     coordinates = response.body.features[0].geometry.coordinates;
                 }
                 let maxDistance = distance || 25;
-                maxDistance *= 1000; // convert kilometers to meters
                 dbQueries.push({
                     geometry: {
-                        $near: {
-                            $geometry: {
-                                type: 'Point',
-                                coordinates
-                            },
-                            $maxDistance: maxDistance
+                        $geoWithin: {
+                            $centerSphere: [coordinates, maxDistance / 6378.1]
                         }
                     }
                 });
@@ -122,7 +120,7 @@ module.exports = {
             }
 
             if (avgRating) {
-                dbQueries.push({ avgRating: { $in: avgRating } });
+                dbQueries.push({ reviewsScore: { $in: avgRating } });
             }
 
             if (category) {
@@ -132,7 +130,24 @@ module.exports = {
                 }
             }
 
+            const sortQuery = [];
+            if (sortby) {
+                if (sortby == 0) {
+                    //newest
+                    sortQuery.push('-createdAt');
+                } else if (sortby == 1) {
+                    sortQuery.push('createdAt');
+                } else if (sortby == 2) {
+                    //cheapest
+                    sortQuery.push('price');
+                } else {
+                    sortQuery.push('-price');
+                }
+            }
+
             res.locals.dbQuery = dbQueries.length ? { $and: dbQueries } : {};
+            res.locals.sortQuery = sortQuery;
+
         }
 
         next();

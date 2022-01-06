@@ -8,6 +8,7 @@ const router = express.Router();
 const {
     postRegister,
     getProfile,
+    showProfileByGuest,
     updateProfile,
     postFollowers,
     deleteFollowers
@@ -34,12 +35,12 @@ const {
 } = require('../middlewares/reqValidate');
 
 /* GET PUT DELETE request */
-router.get('*', verifyUser, errorHandler);
+// router.get('*', verifyUser, errorHandler);
 router.put('*', verifyUser, errorHandler);
 router.delete('*', verifyUser, errorHandler);
 
 //GET /api/user
-router.get('/', isAdmin, asyncErrorHandler(getUsers));
+router.get('/', verifyUser, errorHandler, asyncErrorHandler(getProfile));
 
 //POST /api/user
 router.post('/', validateBody, asyncErrorHandler(postRegister));
@@ -51,7 +52,7 @@ router.post('/followers', verifyUser, errorHandler, asyncErrorHandler(postFollow
 router.delete('/followers', asyncErrorHandler(deleteFollowers));
 
 //GET /api/user/{userId}
-router.get('/:id', validateParams, asyncErrorHandler(getProfile));
+router.get('/:id', validateParams, asyncErrorHandler(showProfileByGuest));
 
 //PUT /api/user/{userId}
 router.put('/:id', validateParams, validateBody, asyncErrorHandler(isValidPassword), asyncErrorHandler(updateProfile));

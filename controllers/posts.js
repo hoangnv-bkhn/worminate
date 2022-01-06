@@ -16,16 +16,22 @@ time_now = () => {
 module.exports = {
     //GET /api/posts
     postIndex: async (req, res, next) => {
-        const { dbQuery } = res.locals;
+        let { dbQuery, sortQuery } = res.locals;
         delete res.locals.dbQuery;
+        delete res.locals.sortQuery;
+        if (sortQuery) {
+            sortQuery = sortQuery.toString();
+        } else {
+            sortQuery = '-_id';
+        }
         let posts = await Post.paginate(dbQuery, {
             populate: {
                 path: 'author',
                 select: 'fullName'
             },
             page: req.query.page || 1,
-            limit: 10,
-            sort: '-_id' /* add - in front of field for decending order
+            limit: 12,
+            sort: sortQuery /* add - in front of field for decending order
             in mongoose sort by id similar to sort by time that item is created*/
         });
         posts.page = Number(posts.page);
@@ -118,7 +124,22 @@ module.exports = {
         post.hitCounter = map;
         await post.save();
         if (!post) return next(createError(404));
-        res.status(200).json({ post: post });
+        const relatedPost = await Post.aggregate([
+            {
+                $geoNear: {
+                    near: {
+                        type: "Point",
+                        coordinates: post.geometry.coordinates
+                    },
+                    query: { category: post.category._id, _id: { $ne: post._id } },
+                    distanceField: "dist",
+                    spherical: true
+                }
+            },
+            { $sort: { postScore: -1, dist: 1 } },
+            { $limit: 25 }
+        ]);
+        res.status(200).json({ post: post, relatedPost: relatedPost });
     },
     postUpdate: async (req, res, next) => {
         const { post } = res.locals;
@@ -184,9 +205,9 @@ module.exports = {
         await user.save();
         res.status(200).json({});
     },
-    //GET /posts/:id/favorite
+    //POST /posts/:id/favorite
     postFavorite: async (req, res, next) => {
-        const { id } = req.params;
+        const { id } = req.body;
         const user = req.user;
         let check = 0;
         if (user.favoritesProduct.length > 9) {
@@ -204,5 +225,16 @@ module.exports = {
             await user.save();
         }
         res.status(200).json({});
+    },
+    //POST /api/posts/sale
+    postSale: async (req, res, next) => {
+        if (req.body.id) {
+            const post = await Post.findById(req.body.id);
+            post.status = false;
+            await post.save();
+            return res.status(200).json({});
+        } else {
+            res.status(400).json({});
+        }
     }
 }

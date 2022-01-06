@@ -2,6 +2,8 @@ const User = require('../models/User');
 const Post = require('../models/Post');
 const createError = require('http-errors');
 const crypto = require('crypto');
+const mbxGeocoding = require('@mapbox/mapbox-sdk/services/geocoding');
+const geocodingClient = mbxGeocoding({ accessToken: process.env.MAPBOX_ACCESS_TOKEN });
 const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
@@ -43,7 +45,39 @@ activeAccount = (email, req) => {
 module.exports = {
     //GET /api
     landingPage: async (req, res, next) => {
-        const posts = await Post.find({}).limit(200).exec();
+        let location = req.query.location || '[105.843088, 21.006475]';
+        let coordinates;
+        try {
+            if (typeof JSON.parse(location) === 'number') {
+                throw new Error;
+            }
+            location = JSON.parse(location);
+            coordinates = location;
+        } catch (err) {
+            const response = await geocodingClient
+                .forwardGeocode({
+                    query: location,
+                    limit: 1
+                })
+                .send();
+            coordinates = response.body.features[0].geometry.coordinates;
+        }
+        let maxDistance = 50 * 1000;
+        const posts = await Post.aggregate([
+            {
+                $geoNear: {
+                    near: {
+                        type: "Point",
+                        coordinates: coordinates
+                    },
+                    spherical: true,
+                    distanceField: 'dist',
+                    maxDistance: maxDistance
+                }
+            },
+            { $sort: { postScore: -1 } },
+            { $limit: 10 }
+        ]);
         res.status(200).json({ posts: posts });
     },
     //POST /api/user
@@ -72,17 +106,16 @@ module.exports = {
         await user.save();
         res.status(200).json({});
     },
-    //GET /api/user/{userId}
+    //GET /api/user
     getProfile: async (req, res, next) => {
-        let { id } = req.params;
-        let user = await User.findOne({ _id: id }).populate([
+        let user = await User.findOne({ _id: req.user._id }).populate([
             {
                 path: 'postList',
-                select: ['title', 'description', 'price']
+                select: ['title', 'description', 'price', 'images', 'status']
             },
             {
                 path: 'favoritesProduct',
-                select: ['title', 'description', 'price']
+                select: ['title', 'description', 'price', 'images', 'status']
             },
             {
                 path: 'manageFollowers',
@@ -90,11 +123,41 @@ module.exports = {
                 populate: [
                     {
                         path: 'follow',
-                        select: 'fullName'
+                        select: ['fullName', 'image']
                     },
                     {
                         path: 'followBy',
-                        select: 'fullName'
+                        select: ['fullName', 'image']
+                    }
+                ]
+            }
+        ]
+        ).exec();
+        res.status(200).json({ user: user });
+    },
+    //GET /api/user/{userId}
+    showProfileByGuest: async (req, res, next) => {
+        let { id } = req.params;
+        let user = await User.findOne({ _id: id }).populate([
+            {
+                path: 'postList',
+                select: ['title', 'description', 'price', 'images', 'status']
+            },
+            {
+                path: 'favoritesProduct',
+                select: ['title', 'description', 'price', 'images', 'status']
+            },
+            {
+                path: 'manageFollowers',
+                options: { sort: { '_id': -1 } },
+                populate: [
+                    {
+                        path: 'follow',
+                        select: ['fullName', 'image']
+                    },
+                    {
+                        path: 'followBy',
+                        select: ['fullName', 'image']
                     }
                 ]
             }
