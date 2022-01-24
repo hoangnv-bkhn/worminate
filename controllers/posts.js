@@ -2,7 +2,7 @@ const Post = require('../models/post')
 const User = require('../models/user')
 const Categories = require('../models/categories')
 const mbxGeocoding = require('@mapbox/mapbox-sdk/services/geocoding')
-let mapBoxToken = process.env.MAPBOX_TOKEN
+let mapBoxToken = process.env.MAPBOX_ACCESS_TOKEN
 const geocodingClient = mbxGeocoding({ accessToken: mapBoxToken })
 const { cloudinary } = require('../cloudinary')
 

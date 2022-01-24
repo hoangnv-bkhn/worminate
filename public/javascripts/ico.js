@@ -129,36 +129,37 @@ async function connectToWallet(ethereumButton) {
   ethereum.on('disconnect', () => {
     $('#after-connected').hide();
     $('#intro-price').show();
+    console.log(123)
   });
 
-  const tokenAddress = '0x6dcb6b24459df0f197203c1a7a9390cb39a6f718';
-  const tokenSymbol = 'WOR';
-  const tokenDecimals = 0;
-  const tokenImage = 'https://res.cloudinary.com/dzxazbuwe/image/upload/v1633839287/worminate/r84og4jih7evxa5uawr1.png';
+  // const tokenAddress = '0x6dcb6b24459df0f197203c1a7a9390cb39a6f718';
+  // const tokenSymbol = 'WOR';
+  // const tokenDecimals = 0;
+  // const tokenImage = 'https://res.cloudinary.com/dzxazbuwe/image/upload/v1633839287/worminate/r84og4jih7evxa5uawr1.png';
 
-  try {
-    // wasAdded is a boolean. Like any RPC method, an error may be thrown.
-    const wasAdded = await ethereum.request({
-      method: 'wallet_watchAsset',
-      params: {
-        type: 'ERC20', // Initially only supports ERC20, but eventually more!
-        options: {
-          address: tokenAddress, // The address that the token is at.
-          symbol: tokenSymbol, // A ticker symbol or shorthand, up to 5 chars.
-          decimals: tokenDecimals, // The number of decimals in the token
-          image: tokenImage, // A string url of the token logo
-        },
-      },
-    });
+  // try {
+  //   // wasAdded is a boolean. Like any RPC method, an error may be thrown.
+  //   const wasAdded = await ethereum.request({
+  //     method: 'wallet_watchAsset',
+  //     params: {
+  //       type: 'ERC20', // Initially only supports ERC20, but eventually more!
+  //       options: {
+  //         address: tokenAddress, // The address that the token is at.
+  //         symbol: tokenSymbol, // A ticker symbol or shorthand, up to 5 chars.
+  //         decimals: tokenDecimals, // The number of decimals in the token
+  //         image: tokenImage, // A string url of the token logo
+  //       },
+  //     },
+  //   });
 
-    if (wasAdded) {
-      console.log('Thanks for your interest!');
-    } else {
-      console.log('Your loss!');
-    }
-  } catch (error) {
-    console.log(error);
-  }
+  //   if (wasAdded) {
+  //     console.log('Thanks for your interest!');
+  //   } else {
+  //     console.log('Your loss!');
+  //   }
+  // } catch (error) {
+  //   console.log(error);
+  // }
 
 };
 
