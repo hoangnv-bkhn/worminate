@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { body, param } = require('express-validator');
 
 // const { storage } = require('../cloudinary');
 // const multer = require('multer');
@@ -29,11 +30,6 @@ const {
     errorHandler
 } = require('../middlewares/authenticate');
 
-const {
-    validateParams,
-    validateBody
-} = require('../middlewares/reqValidate');
-
 /* GET PUT DELETE request */
 // router.get('*', verifyUser, errorHandler);
 router.put('*', verifyUser, errorHandler);
@@ -43,7 +39,7 @@ router.delete('*', verifyUser, errorHandler);
 router.get('/', verifyUser, errorHandler, asyncErrorHandler(getProfile));
 
 //POST /api/user
-router.post('/', validateBody, asyncErrorHandler(postRegister));
+router.post('/', body('password').isLength({ min: 6, max: 24 }), body('email').isEmail(), asyncErrorHandler(postRegister));
 
 //POST /api/user/followers
 router.post('/followers', verifyUser, errorHandler, asyncErrorHandler(postFollowers));
@@ -52,12 +48,12 @@ router.post('/followers', verifyUser, errorHandler, asyncErrorHandler(postFollow
 router.delete('/followers', asyncErrorHandler(deleteFollowers));
 
 //GET /api/user/{userId}
-router.get('/:id', validateParams, asyncErrorHandler(showProfileByGuest));
+router.get('/:id', param('id').isAlphanumeric().isLength({ min: 24, max: 24 }), asyncErrorHandler(showProfileByGuest));
 
 //PUT /api/user/{userId}
-router.put('/:id', validateParams, validateBody, asyncErrorHandler(isValidPassword), asyncErrorHandler(updateProfile));
+router.put('/:id', asyncErrorHandler(isValidPassword), asyncErrorHandler(updateProfile));
 
 //DELETE /api/user/{userId}
-router.delete('/:id', validateParams);
+router.delete('/:id');
 
 module.exports = router;

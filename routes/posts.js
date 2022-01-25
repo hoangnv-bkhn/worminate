@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { body, param } = require('express-validator');
 
 // const { storage } = require('../cloudinary');
 // const multer = require('multer');
@@ -10,9 +11,12 @@ const {
     getCategory,
     postCreate,
     postShow,
+    postSale,
     postUpdate,
     postDestroy,
-    postFavorite
+    postFavorite,
+    deleteFavorite,
+    promotionalPlan
 } = require('../controllers/posts');
 
 const {
@@ -25,10 +29,6 @@ const {
     verifyUser,
     errorHandler
 } = require('../middlewares/authenticate');
-
-const {
-    validateParams
-} = require('../middlewares/reqValidate');
 
 /* POST, PUT, DELETE request */
 router.post('*', verifyUser, errorHandler);
@@ -44,19 +44,25 @@ router.get('/new', asyncErrorHandler(getCategory));
 //POST /api/posts
 router.post('/', asyncErrorHandler(postCreate));
 
-//GET /api/posts/{postId}
-router.get('/:id', validateParams, asyncErrorHandler(postShow));
-
-//PUT /api/posts/{postId}
-router.put('/:id', validateParams, asyncErrorHandler(isAuthor), asyncErrorHandler(postUpdate));
-
-//DELETE /api/posts/{postId}
-router.delete('/:id', validateParams, asyncErrorHandler(isAuthor), asyncErrorHandler(postDestroy));
-
 //POST /api/posts/favorite
 router.post('/favorite', asyncErrorHandler(postFavorite));
 
-//POST /api/posts/sale
-router.post('/sale', asyncErrorHandler(isAuthor), asyncErrorHandler(postUpdate));
+//DELETE /api/posts/favorite
+router.delete('/favorite', asyncErrorHandler(deleteFavorite));
+
+//GET /api/posts/{postId}
+router.get('/:id', param('id').isAlphanumeric().isLength({ min: 24, max: 24 }), asyncErrorHandler(postShow));
+
+//PUT /api/posts/{postId}
+router.put('/:id', asyncErrorHandler(isAuthor), asyncErrorHandler(postUpdate));
+
+//DELETE /api/posts/{postId}
+router.delete('/:id', asyncErrorHandler(isAuthor), asyncErrorHandler(postDestroy));
+
+//POST /api/posts/{postId}/sale
+router.post('/:id/sale', asyncErrorHandler(isAuthor), asyncErrorHandler(postSale));
+
+//POST /api/posts/{postId}/promotion
+router.post('/:id/promotion', asyncErrorHandler(isAuthor), asyncErrorHandler(promotionalPlan));
 
 module.exports = router;

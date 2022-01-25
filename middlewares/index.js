@@ -69,9 +69,13 @@ module.exports = {
     },
     searchAndFilterPosts: async (req, res, next) => {
         const queryKeys = Object.keys(req.query);
+        const dbQueries = [];
+        if (!req.user) {
+            dbQueries.push({ status: true });
+        }
         if (queryKeys.length) {
-            const dbQueries = [];
             let { search, price, avgRating, location, distance, category, sortby } = req.query;
+            let { postScore, promotionalPlan, expirationDate, status, createdAt } = req.query;
             if (search) {
                 search = new RegExp(escapeRegExp(search), 'gi');
                 dbQueries.push({
@@ -130,8 +134,35 @@ module.exports = {
                 }
             }
 
+            if (req.user) {
+                if (postScore) {
+                    dbQueries.push({ postScore: { $gte: postScore } });
+                }
+
+                if (promotionalPlan) {
+                    dbQueries.push({ promotionalPlan: promotionalPlan });
+                }
+
+                if (expirationDate) {
+                    expirationDate = new Date(expirationDate);
+                    dbQueries.push({ expirationDate: { $gte: expirationDate.toUTCString() } });
+                }
+
+                if (status) {
+                    dbQueries.push({ status: status.toLowerCase() });
+                }
+
+                if (createdAt) {
+                    createdAt = new Date(createdAt);
+                    dbQueries.push({ createdAt: { $gte: createdAt.toUTCString() } });
+                }
+            }
+
             const sortQuery = [];
-            if (sortby) {
+
+            if (req.user && sortby) {
+                sortQuery.push(sortby.toString());
+            } else if (sortby) {
                 if (sortby == 0) {
                     //newest
                     sortQuery.push('-createdAt');
@@ -143,6 +174,53 @@ module.exports = {
                 } else {
                     sortQuery.push('-price');
                 }
+            }
+
+            res.locals.dbQuery = dbQueries.length ? { $and: dbQueries } : {};
+            res.locals.sortQuery = sortQuery;
+
+        }
+
+        next();
+    },
+    searchAndFilterUsers: async (req, res, next) => {
+        const queryKeys = Object.keys(req.query);
+
+        if (queryKeys.length) {
+            const dbQueries = [];
+            let { search, createdAt, userRank, salesHistory, usedTokens, sortby } = req.query;
+
+            if (search) {
+                search = new RegExp(escapeRegExp(search), 'gi');
+                dbQueries.push({
+                    $or: [
+                        { email: search },
+                        { fullName: search }
+                    ]
+                });
+            }
+
+            if (createdAt) {
+                createdAt = new Date(createdAt);
+                dbQueries.push({ createdAt: { $gte: createdAt.toUTCString() } });
+            }
+
+            if (userRank) {
+                dbQueries.push({ userRank: userRank })
+            }
+
+            if (salesHistory) {
+                dbQueries.push({ salesHistory: { $gte: salesHistory } });
+            }
+
+            if (usedTokens) {
+                dbQueries.push({ usedTokens: { $gte: usedTokens } });
+            }
+
+            const sortQuery = []
+
+            if (req.user && sortby) {
+                sortQuery.push(sortby.toString());
             }
 
             res.locals.dbQuery = dbQueries.length ? { $and: dbQueries } : {};
