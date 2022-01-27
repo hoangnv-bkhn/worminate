@@ -49,7 +49,8 @@ require('./models/Review');
 
 const {
   calculate_user_statistics,
-  calculate_post_statistics
+  calculate_post_statistics,
+  caculate_data
 } = require('./services/calculate_statistics_service');
 
 const {
@@ -64,6 +65,7 @@ cron.schedule('0 2 */3 * *', function () {
 });
 
 cron.schedule('0 3 * * *', function () {
+  caculate_data();
   update_user_score();
   update_post_score();
   console.log('Successfully updated system data on ' + new Date())

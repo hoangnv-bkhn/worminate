@@ -203,7 +203,7 @@ module.exports = {
             userRank: userRank,
             ageAccount: ageOfAccount,
             postsScore: postsScore
-        }, {new:true})
+        }, { new: true })
 
     },
 
@@ -265,7 +265,7 @@ module.exports = {
 
         return await Post.findOneAndUpdate({ '_id': post._id }, {
             postScore: postScore
-        }, { new:true })
+        }, { new: true })
 
     }
 }

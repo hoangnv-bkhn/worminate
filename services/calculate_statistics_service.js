@@ -130,6 +130,30 @@ module.exports = {
             .writeRecords(data)
         // .then(() => console.log('The post statistics file was written successfully'));
 
+    },
+
+    caculate_data: async () => {
+        const posts = await get_all_posts();
+        for (let post of posts) {
+            let date = currentTime - Date.parse(post.expirationDate);
+            date = date / 24 / 3600 / 1000;
+            if (date < 0 && date > -30) {
+                continue;
+            } else {
+                post.promotionalPlan = 0;
+                post.expirationDate = undefined;
+                await post.save();
+            }
+        }
+        const users = await get_all_users();
+        for (let user of users) {
+            let j = 0;
+            for (i of user.postList) {
+                if (i.status == false) j++;
+            }
+            user.salesHistory = j;
+            await user.save();
+        }
     }
 }
 

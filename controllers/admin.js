@@ -62,6 +62,43 @@ module.exports = {
         } else {
             res.status(400).json({});
         }
+    },
+    deletePost: async (req, res, next) => {
+        const { id } = req.body;
+        const post = await Post.findById(id);
+        if (!post) {
+            return next(createError(404));
+        }
+        for (const image of post.images) {
+            if (image.filename) {
+                deleteImageCloudinary(image.filename);
+            }
+        }
+        const user = await User.findById(post.author._id);
+        if (user) {
+            user.postList = user.postList.filter(p => p.toString() != post._id.toString());
+        }
+        post.reviewsDelete();
+        await Post.deleteOne({ _id: post._id });
+        if (user) {
+            await user.save();
+        }
+        res.status(200).json({});
+    },
+    blockUser: async (req, res, next) => {
+        let { id, active } = req.body;
+        const user = await User.findById(id);
+        if (typeof active === 'string') {
+            active = active.toLowerCase();
+            if (active === 'true') active = true;
+            else active = false;
+        }
+        if (user && typeof active === 'boolean') {
+            user.active = active;
+            await user.save();
+            return res.status(200).json({});
+        } else {
+            res.status(404).json({})
+        }
     }
-
 }

@@ -29,6 +29,12 @@ activeToken = async (email, msg, token, fn) => {
     }
 }
 
+// filter_post_favorite = async (id) => {
+//     const user = await User.findById(id);
+//     for (let post of user.postList) {
+//     }
+// }
+
 activeAccount = (email, req) => {
     const token = crypto.randomBytes(20).toString('hex');
     const msg = {
@@ -244,7 +250,7 @@ module.exports = {
             subject: 'Worminate - Forgot Password / Reset',
             text: `You are receiving this because you (or someone else) have requested the reset of the password for your account.
 			Please click on the following link, or copy and paste it into your browser to complete the process:
-			https://worminate.herokuapp.com/reset/${token}
+			${process.env.URL_CLIENT}/update-password/${token}
 			If you did not request this, please ignore this email and your password will remain unchanged.`.replace(/			/g, '')
         };
         activeToken(email, msg, token, false);

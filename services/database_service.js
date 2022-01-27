@@ -25,7 +25,7 @@ module.exports = {
         return posts;
     },
     get_all_users: async () => {
-        const users = await User.find({}).populate('postList', 'postScore').exec();
+        const users = await User.find({}).populate('postList', ['postScore', 'status']).exec();
         return users
     },
     calculate_hit_counter: (arr) => {

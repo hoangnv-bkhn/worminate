@@ -16,13 +16,8 @@ const {
 } = require('../controllers');
 
 const {
-    getUsers
-} = require('../controllers/admin');
-
-const {
     asyncErrorHandler,
-    isValidPassword,
-    isAdmin
+    isValidPassword
 } = require('../middlewares');
 
 const {
@@ -52,8 +47,5 @@ router.get('/:id', param('id').isAlphanumeric().isLength({ min: 24, max: 24 }), 
 
 //PUT /api/user/{userId}
 router.put('/:id', asyncErrorHandler(isValidPassword), asyncErrorHandler(updateProfile));
-
-//DELETE /api/user/{userId}
-router.delete('/:id');
 
 module.exports = router;

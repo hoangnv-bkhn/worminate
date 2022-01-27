@@ -9,6 +9,10 @@ const {
     deleteImageCloudinary
 } = require('../middlewares');
 
+const {
+    update_one_post_score
+} = require('../services/calculate_score_service');
+
 time_now = () => {
     const timeNow = new Date(Date.now());
     return new Date(timeNow.getFullYear() + '/' + (timeNow.getMonth() + 1) + '/' + timeNow.getDate());
@@ -273,7 +277,6 @@ module.exports = {
         const user = req.user;
         let check = 0;
         user.favoritesProduct.map(item => {
-            console.log(item)
             if (id == item._id.toString()) {
                 user.favoritesProduct.splice(check, 1);
             }
@@ -292,8 +295,15 @@ module.exports = {
             else sale = false;
         }
         if (typeof sale === 'boolean') {
+            const user = req.user;
+            if (sale == true) {
+                user.salesHistory -= 1;
+            } else {
+                user.salesHistory += 1;
+            }
             post.status = sale;
             await post.save();
+            await user.save();
             return res.status(200).json({});
         } else {
             res.status(400).json({});
@@ -302,10 +312,19 @@ module.exports = {
     promotionalPlan: async (req, res, next) => {
         const { post } = res.locals;
         const { promotion } = req.body;
-        if (promotion) {
+        if (post.promotionalPlan > 0) {
+            return next(createError(409));
+        }
+        if (promotion > 0) {
+            const user = req.user;
+            if (promotion == 1) user.usedTokens += 1;
+            else if (promotion == 2) user.usedTokens += 3;
+            else if (promotion == 3) user.usedTokens += 5;
             post.promotionalPlan = promotion;
             post.expirationDate = new Date(Date.now() + 30 * 1000 * 60 * 60 * 24);
             await post.save();
+            await user.save();
+            update_one_post_score(post);
             return res.status(200).json({});
         } else {
             res.status(400).json({});

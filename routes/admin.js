@@ -5,7 +5,9 @@ const { body, param } = require('express-validator');
 const {
     getUsers,
     postCategory,
-    putCategory
+    putCategory,
+    blockUser,
+    deletePost
 } = require('../controllers/admin');
 
 const {
@@ -29,8 +31,14 @@ router.all('*', verifyUser, errorHandler, isAdmin);
 //GET /admin/users
 router.get('/users', asyncErrorHandler(searchAndFilterUsers), asyncErrorHandler(getUsers));
 
+//PUT /admin/users
+router.put('/users', asyncErrorHandler(blockUser))
+
 //GET /admin/posts
 router.get('/posts', asyncErrorHandler(searchAndFilterPosts), asyncErrorHandler(postIndex));
+
+//DELETE /admin/posts
+router.delete('/posts', asyncErrorHandler(deletePost));
 
 //POST /admin/categories
 router.post('/categories', body('name').isAlphanumeric('vi-VN', { ignore: ' ' }), asyncErrorHandler(postCategory));
