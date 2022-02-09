@@ -12,7 +12,8 @@ const {
     showProfileByGuest,
     updateProfile,
     postFollowers,
-    deleteFollowers
+    deleteFollowers,
+    postReport
 } = require('../controllers');
 
 const {
@@ -47,5 +48,8 @@ router.get('/:id', param('id').isAlphanumeric().isLength({ min: 24, max: 24 }), 
 
 //PUT /api/user/{userId}
 router.put('/:id', asyncErrorHandler(isValidPassword), asyncErrorHandler(updateProfile));
+
+//POST /api/user/report
+router.post('/report', verifyUser, errorHandler, asyncErrorHandler(postReport));
 
 module.exports = router;

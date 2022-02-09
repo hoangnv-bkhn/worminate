@@ -313,5 +313,14 @@ module.exports = {
         user.manageFollowers.followBy = user.manageFollowers.followBy.filter(item => item._id.toString() != req.user._id.toString());
         await user.save();
         res.status(200).json({});
+    },
+    //POST api/user/report
+    postReport: async (req, res, next) => {
+        const { userId } = req.body;
+        const user = await User.findById(userId);
+        if (!user) return next(createError(404));
+        user.reported += 1;
+        await user.save();
+        res.status(200).json({});
     }
 }
