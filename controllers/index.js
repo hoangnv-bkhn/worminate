@@ -144,7 +144,7 @@ module.exports = {
         const user = await User.findOne({ _id: req.user._id }).populate([
             {
                 path: 'postList',
-                select: ['title', 'description', 'price', 'images', 'status']
+                select: ['title', 'description', 'price', 'images', 'status', 'promotionalPlan']
             },
             {
                 path: 'favoritesProduct',
@@ -165,7 +165,7 @@ module.exports = {
                 ]
             }
         ]
-        ).select('fullName email admin image salesHistory usedTokens userRank createdAt promotionalPlan').exec();
+        ).select('fullName email admin image salesHistory usedTokens userRank createdAt').exec();
         res.status(200).json({ user: user });
     },
     //GET /api/user/{userId}
