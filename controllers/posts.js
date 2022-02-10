@@ -33,7 +33,7 @@ module.exports = {
             populate: [
                 {
                     path: 'author',
-                    select: 'fullName'
+                    select: 'fullName admin active'
                 },
                 {
                     path: 'category',
@@ -53,7 +53,7 @@ module.exports = {
     },
     //GET /api/posts/new
     getCategory: async (req, res, next) => {
-        const category = await Category.find({}).exec();
+        const category = await Category.find({}).sort({ name: 1 }).exec();
         res.status(200).json({ category: category });
     },
     //POST /api/posts
@@ -160,7 +160,7 @@ module.exports = {
                     },
                     query: { category: post.category._id, _id: { $ne: post._id } },
                     distanceField: "dist",
-                    maxDistance: 100 * 1000,
+                    maxDistance: 1000 * 1000,
                     spherical: true
                 }
             },

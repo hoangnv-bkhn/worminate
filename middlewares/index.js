@@ -175,19 +175,20 @@ module.exports = {
                     sortQuery.push('-price');
                 }
             }
-
-            res.locals.dbQuery = dbQueries.length ? { $and: dbQueries } : {};
             res.locals.sortQuery = sortQuery;
-
         }
+
+        res.locals.dbQuery = dbQueries.length ? { $and: dbQueries } : {};
 
         next();
     },
     searchAndFilterUsers: async (req, res, next) => {
         const queryKeys = Object.keys(req.query);
+        const dbQueries = [];
+
+        dbQueries.push({ admin: false });
 
         if (queryKeys.length) {
-            const dbQueries = [];
             let { search, createdAt, userRank, salesHistory, usedTokens, sortby } = req.query;
 
             if (search) {
@@ -222,11 +223,10 @@ module.exports = {
             if (req.user && sortby) {
                 sortQuery.push(sortby.toString());
             }
-
-            res.locals.dbQuery = dbQueries.length ? { $and: dbQueries } : {};
             res.locals.sortQuery = sortQuery;
-
         }
+
+        res.locals.dbQuery = dbQueries.length ? { $and: dbQueries } : {};
 
         next();
     }
