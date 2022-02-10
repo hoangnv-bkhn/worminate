@@ -3,6 +3,8 @@ const Post = require('../models/Post');
 const Category = require('../models/Category');
 const { validationResult } = require('express-validator');
 const createError = require('http-errors');
+const path = require('path');
+const csv = require('csvtojson');
 
 module.exports = {
 
@@ -100,5 +102,53 @@ module.exports = {
         } else {
             res.status(404).json({})
         }
+    },
+    getStatistic: async (req, res, next) => {
+        const userStatistics = await csv().fromFile(path.join(__dirname, '../services/user_statistics.csv'));
+        const postStatistics = await csv().fromFile(path.join(__dirname, '../services/post_statistics.csv'));
+        const dataUser = {};
+        const dataPost = {};
+        for (const element of userStatistics) {
+            if (element.Attribute == 'postsScore') {
+                dataUser.postsScore = {
+                    Mean: element.Mean,
+                    Std: element.Std
+                }
+            } else if (element.Attribute == 'ageAccount') {
+                dataUser.ageAccount = {
+                    Mean: element.Mean,
+                    Std: element.Std
+                }
+            } else if (element.Attribute == 'salesHistory') {
+                dataUser.salesHistory = {
+                    Mean: element.Mean,
+                    Std: element.Std
+                }
+            } else if (element.Attribute == 'creditLevel') {
+                dataUser.creditLevel = {
+                    Mean: element.Mean,
+                    Std: element.Std
+                }
+            } else if (element.Attribute == 'usedTokens') {
+                dataUser.usedTokens = {
+                    Mean: element.Mean,
+                    Std: element.Std
+                }
+            }
+        }
+        for (const element of postStatistics) {
+            if (element.Attribute == 'reviewsScore') {
+                dataPost.reviewsScore = {
+                    Mean: element.Mean,
+                    Std: element.Std
+                }
+            } else if (element.Attribute == 'hitCounter') {
+                dataPost.hitCounter = {
+                    Mean: element.Mean,
+                    Std: element.Std
+                }
+            }
+        }
+        res.status(200).json({ users: dataUser, posts: dataPost });
     }
 }

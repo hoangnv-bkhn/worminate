@@ -7,7 +7,8 @@ const {
     postCategory,
     putCategory,
     blockUser,
-    deletePost
+    deletePost,
+    getStatistic
 } = require('../controllers/admin');
 
 const {
@@ -28,22 +29,25 @@ const {
 
 router.all('*', verifyUser, errorHandler, isAdmin);
 
-//GET /admin/users
+//GET api/admin
+router.get('/', asyncErrorHandler(getStatistic));
+
+//GET api/admin/users
 router.get('/users', asyncErrorHandler(searchAndFilterUsers), asyncErrorHandler(getUsers));
 
-//PUT /admin/users
+//PUT api/admin/users
 router.put('/users', asyncErrorHandler(blockUser))
 
-//GET /admin/posts
+//GET api/admin/posts
 router.get('/posts', asyncErrorHandler(searchAndFilterPosts), asyncErrorHandler(postIndex));
 
-//DELETE /admin/posts
+//DELETE api/admin/posts
 router.delete('/posts', asyncErrorHandler(deletePost));
 
-//POST /admin/categories
+//POST api/admin/categories
 router.post('/categories', body('name').isAlphanumeric('vi-VN', { ignore: ' ' }), asyncErrorHandler(postCategory));
 
-//PUT /admin/categories/{categoryId}
+//PUT api/admin/categories/{categoryId}
 router.put('/categories/:id', param('id').isAlphanumeric().isLength({ min: 24, max: 24 }), asyncErrorHandler(putCategory));
 
 module.exports = router;
