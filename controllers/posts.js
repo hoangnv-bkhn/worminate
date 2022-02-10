@@ -33,7 +33,7 @@ module.exports = {
             populate: [
                 {
                     path: 'author',
-                    select: 'fullName'
+                    select: 'fullName admin active'
                 },
                 {
                     path: 'category',

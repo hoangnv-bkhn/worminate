@@ -41,9 +41,8 @@ module.exports = {
             const category = await Category(bodyCategory);
             category.save((err, result) => {
                 if (err) return next(createError(409));
+                else return res.status(200).json(category);
             });
-            const categories = await Category.find({}).exec();
-            return res.status(200).json(categories);
         } else {
             res.status(400).json({});
         }
@@ -59,10 +58,8 @@ module.exports = {
             category.name = req.body.name;
             category.save((err, result) => {
                 if (err) return next(createError(409));
+                else return res.status(200).json(category);
             });
-            const categories = await Category.find({}).exec();
-            return res.status(200).json(categories);
-
         } else {
             res.status(400).json({});
         }
