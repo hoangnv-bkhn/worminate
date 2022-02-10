@@ -53,7 +53,7 @@ module.exports = {
     },
     //GET /api/posts/new
     getCategory: async (req, res, next) => {
-        const category = await Category.find({}).exec();
+        const category = await Category.find({}).sort({ name: 1 }).exec();
         res.status(200).json({ category: category });
     },
     //POST /api/posts
