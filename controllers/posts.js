@@ -33,7 +33,8 @@ module.exports = {
             populate: [
                 {
                     path: 'author',
-                    select: 'fullName admin active'
+                    select: 'fullName admin active',
+                    match: { active: true, admin: false }
                 },
                 {
                     path: 'category',
@@ -160,7 +161,7 @@ module.exports = {
                     },
                     query: { category: post.category._id, _id: { $ne: post._id } },
                     distanceField: "dist",
-                    maxDistance: 100 * 1000,
+                    maxDistance: 1000 * 1000,
                     spherical: true
                 }
             },
