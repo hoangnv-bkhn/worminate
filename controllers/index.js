@@ -165,7 +165,7 @@ module.exports = {
                 ]
             }
         ]
-        ).select('fullName email admin image salesHistory usedTokens userRank createdAt').exec();
+        ).select('fullName email admin image salesHistory usedTokens userRank createdAt promotionalPlan').exec();
         res.status(200).json({ user: user });
     },
     //GET /api/user/{userId}
