@@ -137,7 +137,7 @@ module.exports = {
         for (let post of posts) {
             let date = currentTime - Date.parse(post.expirationDate);
             date = date / 24 / 3600 / 1000;
-            if (date < 0 && date > -30) {
+            if (date < 0 && date < -30) {
                 continue;
             } else {
                 post.promotionalPlan = 0;
